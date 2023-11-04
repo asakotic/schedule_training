@@ -1,6 +1,9 @@
 package org.schedule.management.specification;
 
+import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ScheduleSpecification;
+
+import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -13,16 +16,6 @@ public class Main {
 
             @Override
             public void importDataJSON() {
-
-            }
-
-            @Override
-            public void exportDataCSV() {
-
-            }
-
-            @Override
-            public void exportDataJSON() {
 
             }
 
@@ -53,5 +46,6 @@ public class Main {
         };
 
         specification.importMeta();
+        specification.exportDataJSON(new ArrayList<>());
     }
 }
