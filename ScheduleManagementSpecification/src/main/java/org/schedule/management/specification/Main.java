@@ -47,5 +47,6 @@ public class Main {
 
         specification.importMeta();
         specification.exportDataJSON(new ArrayList<>(), "1.json");
+        specification.exportDataJSON(new ArrayList<>(), "1.csv");
     }
 }

@@ -38,7 +38,11 @@ public abstract class ScheduleSpecification {
         MetaData.getInstance().importMeta();
     }
 
-    public void exportDataCSV(ArrayList<Appointment> appointments){
+    public void exportDataCSV(ArrayList<Appointment> appointments, String fileName){
+        appointments.add(new Appointment("PON", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+        appointments.add(new Appointment("UTO", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+        appointments.add(new Appointment("SRE", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+
 
 
     }
