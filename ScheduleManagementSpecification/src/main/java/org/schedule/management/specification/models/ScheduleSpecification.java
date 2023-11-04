@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class ScheduleSpecification {
-
-
     public abstract void importDataCSV();
     public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataCSV();
@@ -41,9 +39,5 @@ public abstract class ScheduleSpecification {
 
     public void importConfig(){
 
-
     }
-
-
-
 }
