@@ -1,0 +1,9 @@
+0 Predmet additional
+1 Pocetak startDate
+2 Kraj endDate
+3 Tip additional
+4 Nastavnik additional
+5 Grupe additional
+6 Dan day
+7 Ucionica room
+

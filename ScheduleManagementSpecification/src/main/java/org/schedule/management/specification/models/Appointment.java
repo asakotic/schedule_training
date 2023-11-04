@@ -3,6 +3,7 @@ package org.schedule.management.specification.models;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -10,23 +11,14 @@ import java.util.List;
 @Getter
 public class Appointment {
     private String day;
-    private String time;
     private Room room;
     private List<RelatedDataAppointment> relatedData;
-    private Date dateFrom;
-    private Date dateTo;
+    private LocalDateTime dateFrom;
+    private LocalDateTime dateTo;
 
-    public Appointment(String day, String time, Room room, List<RelatedDataAppointment> relatedData, Date dateFrom) {
+    public Appointment(String day, Room room, List<RelatedDataAppointment> relatedData,
+                       LocalDateTime dateFrom, LocalDateTime dateTo) {
         this.day = day;
-        this.time = time;
-        this.room = room;
-        this.relatedData = relatedData;
-        this.dateFrom = dateFrom;
-    }
-
-    public Appointment(String day, String time, Room room, List<RelatedDataAppointment> relatedData, Date dateFrom, Date dateTo) {
-        this.day = day;
-        this.time = time;
         this.room = room;
         this.relatedData = relatedData;
         this.dateFrom = dateFrom;
