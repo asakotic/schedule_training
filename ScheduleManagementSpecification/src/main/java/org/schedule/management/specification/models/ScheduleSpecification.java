@@ -42,15 +42,9 @@ public abstract class ScheduleSpecification {
 
 
     }
-    public void exportDataJSON(ArrayList<Appointment> appointments){
-
-        appointments.add(new Appointment("PON", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-        appointments.add(new Appointment("UTO", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-        appointments.add(new Appointment("SRE", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-
+    public void exportDataJSON(ArrayList<Appointment> appointments, String fileName){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
-        try (PrintStream writer = new PrintStream("D:\\Education\\Racunarski Fakultet\\Treci semestar\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\1.json")) {
+        try (PrintStream writer = new PrintStream(fileName)) {
             gson.toJson(appointments, writer);
         } catch (IOException e) {
             e.printStackTrace();
