@@ -22,7 +22,6 @@ public class Room {
         this.capacity = capacity;
         this.equipment = equipment;
     }
-
     public boolean addEquipment(String name, int quantity){
         return false; //DODAJEMO U JSON EQUIPMENT NIZ {RACUNAR : 5} ODMAH JSON EDIT
     }

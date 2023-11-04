@@ -12,11 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class ScheduleSpecification {
-    private List<Room> rooms = new ArrayList<>();
-    private List<Date> holidays = new ArrayList<>();
-    private String dateFormat;
-    private Date startDateValid;
-    private Date endDateValid;
+
 
     public abstract void importDataCSV();
     public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
@@ -30,8 +26,9 @@ public abstract class ScheduleSpecification {
 
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment){
         Room r = new Room(roomName, capacity, equipment);
-        if(!rooms.contains(r)){
-            rooms.add(r);
+        if(!MetaData.getInstance().getRooms().contains(r)){
+            MetaData.getInstance().getRooms().add(r);
+
             return true;
         }
         //TODO: Exception
