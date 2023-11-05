@@ -1,49 +1,47 @@
 package org.schedule.management.specification.models;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.schedule.management.specification.adapters.DateAdapter;
+import org.schedule.management.specification.adapters.TimeAdapter;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
+@ToString
 public class MetaData {
 
-    public String dateFormat;
-    public ArrayList<Room> rooms;
-    public String scheduleValidFrom;
-    public String scheduleValidTo;
-    public ArrayList<String> holidays;
-    private static MetaData instance = null;
-    public static MetaData getInstance(){
-        if(instance == null){
-            instance = new MetaData();
-        }
-        return instance;
-    }
+    private String dateFormat;
+    private List<Room> rooms;
+    private LocalDate scheduleValidFrom;
+    private LocalDate scheduleValidTo;
+    private List<String> holidays;
+    private Map<DayOfWeek,WorkingHours> workingHours;
+    private static Gson gson = new GsonBuilder()
+            .registerTypeAdapter(LocalDate.class,new DateAdapter())
+            .registerTypeAdapter(LocalTime.class,new TimeAdapter())
+            .create();
 
-    private MetaData(){
-
-    }
-
-    public void importMeta(){
-        Gson gson = new Gson();
-        try (Reader reader = new FileReader("D:\\Education\\Racunarski Fakultet\\Treci semestar\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\metadata.json")) {
+    public static MetaData importMeta(){
+        try (Reader reader = new FileReader("C:\\Users\\jovvu\\IdeaProjects\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\metadata.json")) {
             MetaData staff = gson.fromJson(reader, MetaData.class);
-            this.setHolidays(staff.holidays);
-            this.setRooms(staff.rooms);
-            this.setDateFormat(staff.dateFormat);
-            this.setScheduleValidTo(staff.scheduleValidTo);
-            this.setScheduleValidFrom(staff.scheduleValidFrom);
+
             ArrayList<String> holidaysPom = new ArrayList<>();
-            for(String date : holidays){
+            for(String date : staff.holidays){
                 if(!date.contains("-")) {
                     holidaysPom.add(LocalDate.parse(date, DateTimeFormatter.ofPattern("dd:MM:yyyy")).toString());
                     continue;
@@ -60,22 +58,13 @@ public class MetaData {
 
                 holidaysPom.addAll(totalDates);
             }
-
-            holidays = holidaysPom;
-
+            staff.holidays = holidaysPom;
+            return staff;
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    @Override
-    public String toString() {
-        return "MetaData{" +
-                "dateFormat='" + dateFormat + '\'' +
-                ", rooms=" + rooms +
-                ", scheduleValidFrom=" + scheduleValidFrom +
-                ", scheduleValidTo=" + scheduleValidTo +
-                ", holidays=" + holidays +
-                '}';
-    }
+
 }

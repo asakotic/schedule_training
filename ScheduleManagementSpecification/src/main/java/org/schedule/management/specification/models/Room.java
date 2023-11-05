@@ -13,7 +13,6 @@ import java.util.Objects;
 public class Room {
     private String name;
     private String capacity;
-    @Getter(AccessLevel.PRIVATE)
     @Setter(AccessLevel.PRIVATE)
     private Map<String, Integer> equipment;
 
@@ -22,6 +21,10 @@ public class Room {
         this.capacity = capacity;
         this.equipment = equipment;
     }
+
+    public Room() {
+    }
+
     public boolean addEquipment(String name, int quantity){
         return false; //DODAJEMO U JSON EQUIPMENT NIZ {RACUNAR : 5} ODMAH JSON EDIT
     }

@@ -18,5 +18,6 @@
         <module>ScheduleManagementSpecification</module>
         <module>ImplementationOne</module>
         <module>ImplementationTwo</module>
+        <module>TestApp</module>
     </modules>
 </project>

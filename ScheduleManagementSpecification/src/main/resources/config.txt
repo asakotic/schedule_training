@@ -1,8 +1,8 @@
-0 Predmet additional
+0 Predmet relatedData
 1 Pocetak startDate
 2 Kraj endDate
-3 Tip additional
-4 Nastavnik additional
-5 Grupe additional
+3 Tip relatedData
+4 Nastavnik relatedData
+5 Grupe relatedData
 6 Dan day
 7 Ucionica room

@@ -2,20 +2,22 @@ package org.schedule.management.specification.models;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.*;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadPoolExecutor;
+@Getter
+@Setter
 
 public abstract class ScheduleSpecification {
 
-    private ArrayList<Appointment> appointments;
-    public abstract void importDataCSV();
+    private MetaData metaData;
+    private List<Appointment> appointments = new ArrayList<>();
+    private List<String> headers;
+    public abstract void importDataCSV(String file,String config) throws IOException;
     public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF();
     public abstract void addAppointment();
@@ -23,28 +25,29 @@ public abstract class ScheduleSpecification {
     public abstract void rescheduleAppointment();
     public abstract void search();
 
+    public void importMeta(){
+        metaData = MetaData.importMeta();
+        System.out.println(metaData);
+    }
+    public void importConfig(){
+        //TODO ovo ne treba da bude tu ili da bude privatno
+    }
+
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment){
         Room r = new Room(roomName, capacity, equipment);
-        if(!MetaData.getInstance().getRooms().contains(r)){
-            MetaData.getInstance().getRooms().add(r);
-
+        if(!metaData.getRooms().contains(r)){
+            metaData.getRooms().add(r);
             return true;
         }
         //TODO: Exception
         return false;
     }
 
-    public void importMeta(){
-        MetaData.getInstance().importMeta();
-    }
 
     public void exportDataCSV(ArrayList<Appointment> appointments, String fileName){
-        appointments.add(new Appointment("PON", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-        appointments.add(new Appointment("UTO", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-        appointments.add(new Appointment("SRE", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-
-
-
+       // appointments.add(new Appointment("PON", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+       // appointments.add(new Appointment("UTO", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+       // appointments.add(new Appointment("SRE", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
     }
     public void exportDataJSON(ArrayList<Appointment> appointments, String fileName){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -55,7 +58,4 @@ public abstract class ScheduleSpecification {
         }
     }
 
-    public void importConfig(){
-
-    }
 }
