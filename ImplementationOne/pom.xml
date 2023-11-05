@@ -10,4 +10,12 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.schedule.management.specification</groupId>
+            <artifactId>ScheduleManagementSpecification</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>
