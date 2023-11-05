@@ -17,5 +17,6 @@
     <modules>
         <module>ScheduleManagementSpecification</module>
         <module>ImplementationOne</module>
+        <module>ImplementationTwo</module>
     </modules>
 </project>
