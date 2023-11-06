@@ -6,11 +6,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConfigMapping {
-    private Integer index;
+    private int index;
     private String userLabel;
     private String primaryLabel;
 
-    public ConfigMapping(Integer index, String userLabel, String primaryLabel) {
+    public ConfigMapping(int index, String userLabel, String primaryLabel) {
         this.index = index;
         this.userLabel = userLabel;
         this.primaryLabel = primaryLabel;

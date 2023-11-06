@@ -78,6 +78,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                 Appointment a = ap.copy();
                 a.setDateFrom(startDateTime);
                 a.setDateTo(startDateTime.withHour(ltEnd.getHour()).withMinute(ltEnd.getMinute()));
+                a.setDay(startDateTime.getDayOfWeek());
                 if(!this.getMetaData().getHolidays().contains(a.getDateFrom().toLocalDate().toString()))
                     this.getAppointments().add(a);
                 startDateTime = startDateTime.plusDays(7);
@@ -95,9 +96,4 @@ public class ScheduleImpl extends ScheduleSpecification {
 
     }
 
-
-    @Override
-    public void search() {
-
-    }
 }

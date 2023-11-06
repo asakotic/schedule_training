@@ -4,13 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 import java.io.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Getter
 @Setter
@@ -29,9 +29,6 @@ public abstract class ScheduleSpecification {
     public void importMeta(){
         metaData = MetaData.importMeta();
         System.out.println(metaData);
-    }
-    public void importConfig(){
-        //TODO ovo ne treba da bude tu ili da bude privatno
     }
 
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment){
@@ -81,11 +78,45 @@ public abstract class ScheduleSpecification {
                && addAppointment(appointment);
     }
 
+    public void exportDataCSV(String fileName, String configpath){
 
-    public void exportDataCSV(ArrayList<Appointment> appointments, String fileName){
-       // appointments.add(new Appointment("PON", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-       // appointments.add(new Appointment("UTO", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
-       // appointments.add(new Appointment("SRE", MetaData.getInstance().getRooms().get(0), new ArrayList<>(), LocalDateTime.now().toString(), LocalDateTime.now().plusDays(1).toString()));
+        List<ConfigMapping> configMap = importConfig(configpath);
+        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
+        FileWriter fileWriter = null;
+        CSVPrinter csvPrinter = null;
+        appointments.sort(Appointment::compareTo);
+        try {
+            fileWriter = new FileWriter(fileName);
+            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+           // csvPrinter.printRecord(headers);ubaci glupi heder
+            for (Appointment appointment : this.getAppointments()) {
+
+                List<String> toAdd = new ArrayList<>();
+                for (ConfigMapping row : configMap) {
+                    String userLbl = row.getUserLabel();
+
+                    switch (row.getPrimaryLabel()) {
+                        case "room" -> toAdd.add(appointment.getRoom().getName());
+                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
+                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
+                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
+                        case "day" -> toAdd.add(appointment.getDay().toString());
+                    }
+                }
+                csvPrinter.printRecord(toAdd);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                csvPrinter.close();
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
     public void exportDataJSON(List<Appointment> appointments, String fileName){
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -95,9 +126,9 @@ public abstract class ScheduleSpecification {
             e.printStackTrace();
         }
     }
-    protected List<ConfigMapping>  importConfig(String configPath){
+    protected List<ConfigMapping> importConfig(String configPath){
         List<ConfigMapping> map = new ArrayList<>();
-
+        int br = 0;
         File file;
         Scanner sc = null;
         try {
@@ -106,9 +137,11 @@ public abstract class ScheduleSpecification {
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 String[] split = line.split(" ", 3);
-                ConfigMapping cm = new ConfigMapping(Integer.valueOf(split[0]), split[1], split[2]);
+                ConfigMapping cm = new ConfigMapping(Integer.parseInt(split[0]), split[1], split[2]);
                 map.add(cm);
+                if(br++ != cm.getIndex()) return null; //TODO BACI EKSEPSNNNNN
             }
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }finally {

@@ -12,6 +12,7 @@ public class TestMain {
                 "C:\\Users\\jovvu\\IdeaProjects\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\config.txt");
         System.out.println(ss.getAppointments());
 
-       // ss.exportDataJSON(ss.getAppointments(),"1.json");
+        ss.exportDataCSV("1.json","C:\\Users\\jovvu\\IdeaProjects\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\config.txt");
+
     }
 }

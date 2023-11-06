@@ -81,10 +81,13 @@ public class ScheduleImpl extends ScheduleSpecification {
                 startWorkingtime = this.getMetaData().getWorkingHours().get(endDateTime.getDayOfWeek()).getOpeningTime();
                 b.setDateFrom(endDateTime.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
                 b.setDateTo(endDateTime);
+                b.setDay(endDateTime.getDayOfWeek());
                 this.getAppointments().add(b);
             }
 
         }
+        this.getAppointments().sort(Appointment::compareTo);
+
     }
     private List<Appointment> makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
         LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
@@ -94,6 +97,7 @@ public class ScheduleImpl extends ScheduleSpecification {
             Appointment a = appointment.copy();
             a.setDateFrom(startDate.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
             a.setDateTo(startDate.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute()));
+            a.setDay(startDate.getDayOfWeek());
             appointments.add(appointment);
             startDate = startDate.plusDays(1);
             startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
@@ -113,9 +117,4 @@ public class ScheduleImpl extends ScheduleSpecification {
 
     }
 
-
-    @Override
-    public void search() {
-
-    }
 }

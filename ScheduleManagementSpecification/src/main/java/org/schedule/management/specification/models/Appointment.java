@@ -13,7 +13,7 @@ import java.util.Map;
 
 @Setter
 @Getter
-public class Appointment {
+public class Appointment implements Comparable<Appointment>{
     private DayOfWeek day;
     private Room room;
     private Map<String,String> relatedData = new HashMap<>();
@@ -52,5 +52,16 @@ public class Appointment {
         );
 
         return a;
+    }
+
+    @Override
+    public int compareTo(Appointment o) {
+        int a = this.getDateFrom().toLocalDate().compareTo(o.dateFrom.toLocalDate());
+        if(a != 0) return a;
+
+        a = this.getRoom().getName().compareTo(o.room.getName());
+        if(a != 0) return a;
+
+        return this.getDateFrom().toLocalTime().compareTo(o.dateFrom.toLocalTime());
     }
 }
