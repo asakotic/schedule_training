@@ -8,40 +8,15 @@ import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class ScheduleImpl extends ScheduleSpecification {
 
-
-    private  List<ConfigMapping>  importConfig(String configPath){
-        List<ConfigMapping> map = new ArrayList<>();
-
-        File file;
-        Scanner sc = null;
-        try {
-            file = new File(configPath);
-            sc = new Scanner(file);
-            while (sc.hasNextLine()) {
-                String line = sc.nextLine();
-                String[] split = line.split(" ", 3);
-                ConfigMapping cm = new ConfigMapping(Integer.valueOf(split[0]), split[1], split[2]);
-                map.add(cm);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }finally {
-            if (sc != null) {
-                sc.close();
-            }
-        }
-        return map;
-    }
     @Override
     public void importDataCSV(String filepath,String configpath) throws IOException {
         List<ConfigMapping> configMap = importConfig(configpath);
@@ -71,6 +46,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                         break;
                     case "startDate":
                         startDateTime = LocalDateTime.parse(i.get(index), formatter);
+                        ap.setDay(startDateTime.getDayOfWeek());
                         break;
                     case "endDate":
                         endDateTime = LocalDateTime.parse(i.get(index), formatter);
@@ -80,14 +56,21 @@ public class ScheduleImpl extends ScheduleSpecification {
                         break;
                 }
             }
-            ap.setDay(startDateTime.getDayOfWeek());
+            if(startDateTime == null || endDateTime == null || ap.getDay() == null) return;// TODO baci eksepsn
+            LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getOpeningTime();
+            LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getClosingTime();
+
             if(startDateTime.toLocalDate().equals(endDateTime.toLocalDate())){
                 ap.setDateFrom(startDateTime);
                 ap.setDateTo(endDateTime);
+                if(startDateTime.toLocalTime().isBefore(startWorkingtime) ||
+                        endDateTime.toLocalTime().isAfter(endWorkingTime)) {
+                    //TODO baci eksepsn
+                }
                 this.getAppointments().add(ap);
             }else{
                 ap.setDateFrom(startDateTime);
-                startDateTime = startDateTime.withHour(23).withMinute(59);
+                startDateTime = startDateTime.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute());
                 ap.setDateTo(startDateTime);
                 this.getAppointments().add(ap);
 
@@ -95,7 +78,8 @@ public class ScheduleImpl extends ScheduleSpecification {
                 this.getAppointments().addAll(makeMore(ap,startDateTime.plusDays(1),endDateTime.minusDays(1)));
 
                 Appointment b = ap.copy();
-                b.setDateFrom(endDateTime.withHour(0).withMinute(0));
+                startWorkingtime = this.getMetaData().getWorkingHours().get(endDateTime.getDayOfWeek()).getOpeningTime();
+                b.setDateFrom(endDateTime.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
                 b.setDateTo(endDateTime);
                 this.getAppointments().add(b);
             }
@@ -103,13 +87,17 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
     private List<Appointment> makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
+        LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
+        LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         List<Appointment> appointments = new ArrayList<>();
         while(!startDate.isAfter(endDate)){
             Appointment a = appointment.copy();
-            a.setDateFrom(startDate.withHour(0).withMinute(0));
-            a.setDateTo(startDate.withHour(23).withMinute(59));
+            a.setDateFrom(startDate.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
+            a.setDateTo(startDate.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute()));
             appointments.add(appointment);
             startDate = startDate.plusDays(1);
+            startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
+            endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         }
 
         return appointments;
@@ -125,20 +113,6 @@ public class ScheduleImpl extends ScheduleSpecification {
 
     }
 
-    @Override
-    public void addAppointment() {
-
-    }
-
-    @Override
-    public void deleteAppointment() {
-
-    }
-
-    @Override
-    public void rescheduleAppointment() {
-
-    }
 
     @Override
     public void search() {
