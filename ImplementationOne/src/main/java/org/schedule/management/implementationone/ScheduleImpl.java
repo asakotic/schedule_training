@@ -6,6 +6,11 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
@@ -167,8 +172,49 @@ public class ScheduleImpl extends ScheduleSpecification {
     }
 
     @Override
-    public void exportDataPDF() {
+    public void exportDataPDF(String fileName) {
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage(PDRectangle.A4);
+            document.addPage(page);
 
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                // Export Student Information
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(50, 600);
+                contentStream.showText("Schedule Information");
+                //contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
+                contentStream.newLineAtOffset(0, -20);
+                //contentStream.beginText();
+                String headers = "Name, Surname, Group, Index";
+                for (Appointment appointment : getAppointments()) {
+                    String scheduleData = appointment.getRoom().getName() + ", "
+                            + appointment.getDateFrom() + ", "
+                            + appointment.getDateTo() + ", "
+                            + appointment.getRelatedData();
+                    contentStream.showText(scheduleData);
+                    contentStream.newLineAtOffset(0, -15);
+                }
+
+                // Export Room Information
+                //contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+                contentStream.newLineAtOffset(0, -30);
+                contentStream.showText("Room Information");
+                contentStream.setFont(PDType1Font.HELVETICA, 12);
+                contentStream.newLineAtOffset(0, -20);
+                ///contentStream.beginText();
+                String roomHeaders = "Name, Capacity, Other";
+                for (Room room : getMetaData().getRooms()) {
+                    String roomData = room.getName() + ", " + room.getCapacity() + ", " + room.getEquipment();
+                    //contentStream.showText(roomData);
+                    contentStream.newLineAtOffset(0, -15);
+                }
+
+            }
+            document.save("p.pdf");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
