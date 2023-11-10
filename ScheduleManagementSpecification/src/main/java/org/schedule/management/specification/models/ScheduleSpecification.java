@@ -23,14 +23,13 @@ public abstract class ScheduleSpecification {
     public abstract void importDataCSV(String file,String config) throws IOException;
     public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF();
-
+    public abstract void exportDataCSV(String fileName, String configpath);
+    public abstract void exportDataJSON(List<Appointment> appointments, String fileName);
     public  void search(){}
-
     public void importMeta(){
         metaData = MetaData.importMeta();
         System.out.println(metaData);
     }
-
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment){
         Room r = new Room(roomName, capacity, equipment);
         if(!metaData.getRooms().contains(r)){
@@ -78,54 +77,7 @@ public abstract class ScheduleSpecification {
                && addAppointment(appointment);
     }
 
-    public void exportDataCSV(String fileName, String configpath){
 
-        List<ConfigMapping> configMap = importConfig(configpath);
-        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
-        FileWriter fileWriter = null;
-        CSVPrinter csvPrinter = null;
-        appointments.sort(Appointment::compareTo);
-        try {
-            fileWriter = new FileWriter(fileName);
-            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-           // csvPrinter.printRecord(headers);ubaci glupi heder
-            for (Appointment appointment : this.getAppointments()) {
-
-                List<String> toAdd = new ArrayList<>();
-                for (ConfigMapping row : configMap) {
-                    String userLbl = row.getUserLabel();
-
-                    switch (row.getPrimaryLabel()) {
-                        case "room" -> toAdd.add(appointment.getRoom().getName());
-                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
-                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
-                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
-                        case "day" -> toAdd.add(appointment.getDay().toString());
-                    }
-                }
-                csvPrinter.printRecord(toAdd);
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                csvPrinter.close();
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void exportDataJSON(List<Appointment> appointments, String fileName){
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        try (PrintStream writer = new PrintStream(fileName)) {
-            gson.toJson(appointments, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     protected List<ConfigMapping> importConfig(String configPath){
         List<ConfigMapping> map = new ArrayList<>();
         int br = 0;
