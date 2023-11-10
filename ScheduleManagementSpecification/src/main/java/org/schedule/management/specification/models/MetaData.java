@@ -37,7 +37,7 @@ public class MetaData {
             .create();
 
     public static MetaData importMeta(){
-        try (Reader reader = new FileReader("C:\\Users\\jovvu\\IdeaProjects\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\metadata.json")) {
+        try (Reader reader = new FileReader("D:\\Education\\Racunarski Fakultet\\Treci semestar\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\metadata.json")) {
             MetaData staff = gson.fromJson(reader, MetaData.class);
 
             ArrayList<String> holidaysPom = new ArrayList<>();

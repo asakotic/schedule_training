@@ -22,7 +22,7 @@ public abstract class ScheduleSpecification {
     private List<String> headers;
     public abstract void importDataCSV(String file,String config) throws IOException;
     public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
-    public abstract void exportDataPDF();
+    public abstract void exportDataPDF(String fileName);
     public abstract void exportDataCSV(String fileName, String configpath);
     public abstract void exportDataJSON(List<Appointment> appointments, String fileName);
     public  void search(){}

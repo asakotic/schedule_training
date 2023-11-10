@@ -1,5 +1,8 @@
 package org.schedule.management.implementationtwo;
 
+import com.itextpdf.text.*;
+
+import com.itextpdf.text.pdf.PdfWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -8,6 +11,7 @@ import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.time.DayOfWeek;
@@ -92,7 +96,21 @@ public class ScheduleImpl extends ScheduleSpecification {
     }
 
     @Override
-    public void exportDataPDF() {
+    public void exportDataPDF(String fileName) {
+        try{
+            System.out.println("ERRssOR");
+            Document document = new Document();
+            PdfWriter.getInstance(document, new FileOutputStream("file.pdf"));
+
+            document.open();
+            Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
+            Chunk chunk = new Chunk("Hello World", font);
+
+            document.add(chunk);
+            document.close();
+        }catch (Exception e){
+            System.out.println(e);
+        }
 
     }
 
