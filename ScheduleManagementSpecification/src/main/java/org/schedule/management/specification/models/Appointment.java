@@ -28,6 +28,13 @@ public class Appointment implements Comparable<Appointment>{
         this.dateTo = dateTo;
     }
 
+    public Appointment(Room room, LocalDateTime dateFrom, LocalDateTime dateTo) {
+        this.room = room;
+        this.dateFrom = dateFrom;
+        this.dateTo = dateTo;
+        this.setDay(dateFrom.getDayOfWeek());
+    }
+
     public Appointment() {
     }
 

@@ -113,12 +113,21 @@ public abstract class ScheduleSpecification {
 
 
                 for(Appointment appointment : appointments){
+                    if(!a.equals(appointment.getRoom()))continue;
+
+                    if(startDateTime.isBefore(appointment.getDateFrom().toLocalDate())){
+                        LocalDateTime ldt = LocalDateTime.of(startDateTime,startWorkingHours);
+                        group.add(new Appointment(a,ldt ,appointment.getDateTo()));
+                    }
+                    if(startDateTime.equals(appointment.getDateFrom().toLocalDate()) &&
+                            startWorkingHours.isBefore(appointment.getDateFrom().toLocalTime())){
+                        LocalDateTime ldt = LocalDateTime.of(startDateTime,startWorkingHours);
+                        group.add(new Appointment(a,ldt ,appointment.getDateTo()));
+                    }
+                    startWorkingHours =  appointment.getDateTo().toLocalTime();
+                    if(!startWorkingHours.isBefore(endWorkingHours))break;
 
                 }
-
-
-
-
                 startDateTime = startDateTime.plusDays(1);
             }
         }
