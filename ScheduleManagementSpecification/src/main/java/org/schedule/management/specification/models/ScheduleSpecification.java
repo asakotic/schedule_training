@@ -10,6 +10,7 @@ import org.apache.commons.csv.CSVPrinter;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
 
 import java.io.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -25,7 +26,59 @@ public abstract class ScheduleSpecification {
     public abstract void importDataCSV(String file,String config) throws IOException;
     public abstract void importDataJSON() throws IOException; // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF(String fileName);
-    public  void search(){}
+
+    public List<Appointment> filterDate(List<Appointment> appointments, LocalDate dateFrom, LocalDate dateTo){
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+            if(!a.getDateFrom().toLocalDate().isBefore(dateFrom) && !a.getDateTo().toLocalDate().isAfter(dateTo))
+                group.add(a);
+        }
+
+        return group;
+    }
+    public List<Appointment> filterCapacity(List<Appointment> appointments, boolean greater, int capacity){
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+            if(greater && capacity < Integer.parseInt(a.getRoom().getCapacity()))
+                group.add(a);
+            if(!greater && capacity > Integer.parseInt(a.getRoom().getCapacity()))
+                group.add(a);
+        }
+        return group;
+    }
+
+    public List<Appointment> filterByRoom(List<Appointment> appointments, List<String> rooms){
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+            if(rooms.contains(a.getRoom().getName()))
+                group.add(a);
+        }
+
+        return group;
+    }
+
+    public List<Appointment> filterByReservedAppointments(){
+        return appointments;
+    }
+
+    public List<Appointment> resetFilter(){
+        return appointments;
+    }
+
+    public void searchByAvailableAppointments(){
+
+
+    }
+
+    public  void search(){
+
+
+
+
+    }
     public void importMeta(){
         metaData = MetaData.importMeta();
         System.out.println(metaData);
