@@ -27,6 +27,33 @@ public abstract class ScheduleSpecification {
     public abstract void importDataJSON() throws IOException; // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF(String fileName);
 
+    //da ima racunar, da ima vise od 10 racunara, da nema racunar
+    public List<Appointment> filterEquipment(List <Appointment> appointments, String equipment, int quantity){
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+            if(quantity == 0 && !(a.getRoom().getEquipment().containsKey(equipment))){
+                group.add(a);
+                continue;
+            }
+            if((a.getRoom().getEquipment().containsKey(equipment)) &&
+                    a.getRoom().getEquipment().get(equipment) >= quantity){
+                group.add(a);
+            }
+        }
+
+        return group;
+    }
+
+    public List<Appointment> filterRelatedData(List<Appointment> appointments, String relatedDataKey, String relatedDataValue){
+        List<Appointment> group = new ArrayList<>();
+        for(Appointment a : appointments){
+            if(a.getRelatedData().get(relatedDataKey).contains(relatedDataValue)){
+                group.add(a); //related data
+            }
+        }
+        return group;
+    }
     public List<Appointment> filterDate(List<Appointment> appointments, LocalDate dateFrom, LocalDate dateTo){
         List<Appointment> group = new ArrayList<>();
 
