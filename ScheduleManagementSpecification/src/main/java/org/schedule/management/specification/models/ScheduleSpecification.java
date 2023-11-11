@@ -21,7 +21,7 @@ public abstract class ScheduleSpecification {
     private List<Appointment> appointments = new ArrayList<>();
     private List<String> headers;
     public abstract void importDataCSV(String file,String config) throws IOException;
-    public abstract void importDataJSON(); // uzme sobe, uzme praznike, meta podaci
+    public abstract void importDataJSON() throws IOException; // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF(String fileName);
     public abstract void exportDataCSV(String fileName, String configpath);
     public abstract void exportDataJSON(List<Appointment> appointments, String fileName);
@@ -54,7 +54,7 @@ public abstract class ScheduleSpecification {
                 return false;
             }
         }
-       // this.appointments.add(appointment);
+        this.appointments.add(appointment);
         return true;
     }
     public  boolean deleteAppointment(LocalDateTime from, LocalDateTime to, String roomName){

@@ -2,6 +2,7 @@ package org.schedule.management.implementationone;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
@@ -11,15 +12,13 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -46,24 +45,20 @@ public class ScheduleImpl extends ScheduleSpecification {
 
 
                 switch (configMap.get(index).getPrimaryLabel()) {
-                    case "room":
-                        List<Room> rooms =  this.getMetaData().getRooms();
-                        for(Room r: rooms){
-                            if(r.getName().equals(i.get(index))){
+                    case "room" -> {
+                        List<Room> rooms = this.getMetaData().getRooms();
+                        for (Room r : rooms) {
+                            if (r.getName().equals(i.get(index))) {
                                 ap.setRoom(r);
                             }
                         }
-                        break;
-                    case "startDate":
+                    }
+                    case "startDate" -> {
                         startDateTime = LocalDateTime.parse(i.get(index), formatter);
                         ap.setDay(startDateTime.getDayOfWeek());
-                        break;
-                    case "endDate":
-                        endDateTime = LocalDateTime.parse(i.get(index), formatter);
-                        break;
-                    case "relatedData":
-                        ap.getRelatedData().put(userLbl, i.get(index));
-                        break;
+                    }
+                    case "endDate" -> endDateTime = LocalDateTime.parse(i.get(index), formatter);
+                    case "relatedData" -> ap.getRelatedData().put(userLbl, i.get(index));
                 }
             }
             if(startDateTime == null || endDateTime == null || ap.getDay() == null) return;// TODO baci eksepsn
@@ -77,44 +72,39 @@ public class ScheduleImpl extends ScheduleSpecification {
                         endDateTime.toLocalTime().isAfter(endWorkingTime)) {
                     //TODO baci eksepsn
                 }
-                this.getAppointments().add(ap);
+                this.addAppointment(ap);
             }else{
                 ap.setDateFrom(startDateTime);
                 startDateTime = startDateTime.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute());
                 ap.setDateTo(startDateTime);
-                this.getAppointments().add(ap);
+                this.addAppointment(ap);
 
                 Appointment a = ap.copy();
-                this.getAppointments().addAll(makeMore(ap,startDateTime.plusDays(1),endDateTime.minusDays(1)));
+                makeMore(ap,startDateTime.plusDays(1),endDateTime.minusDays(1));
 
                 Appointment b = ap.copy();
                 startWorkingtime = this.getMetaData().getWorkingHours().get(endDateTime.getDayOfWeek()).getOpeningTime();
                 b.setDateFrom(endDateTime.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
                 b.setDateTo(endDateTime);
                 b.setDay(endDateTime.getDayOfWeek());
-                this.getAppointments().add(b);
+                this.addAppointment(b);
             }
-
         }
         this.getAppointments().sort(Appointment::compareTo);
-
     }
-    private List<Appointment> makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
+    private void makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
         LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
         LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
-        List<Appointment> appointments = new ArrayList<>();
         while(!startDate.isAfter(endDate)){
             Appointment a = appointment.copy();
             a.setDateFrom(startDate.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
             a.setDateTo(startDate.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute()));
             a.setDay(startDate.getDayOfWeek());
-            appointments.add(appointment);
+            addAppointment(appointment);
             startDate = startDate.plusDays(1);
             startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
             endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         }
-
-        return appointments;
     }
 
     public void exportDataCSV(String fileName, String configpath){
@@ -124,11 +114,10 @@ public class ScheduleImpl extends ScheduleSpecification {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
         FileWriter fileWriter = null;
         CSVPrinter csvPrinter = null;
-        //appointments.sort(Appointment::compareTo);
+        getAppointments().sort(Appointment::compareTo);
         try {
             fileWriter = new FileWriter(fileName);
             csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-            // csvPrinter.printRecord(headers);ubaci glupi heder
             for (Appointment appointment : this.getAppointments()) {
 
                 List<String> toAdd = new ArrayList<>();
@@ -158,7 +147,10 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
     public void exportDataJSON(List<Appointment> appointments, String fileName){
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class,new LocalDateTimeAdapter())
+                .setPrettyPrinting()
+                .create();
         try (PrintStream writer = new PrintStream(fileName)) {
             gson.toJson(appointments, writer);
         } catch (IOException e) {
@@ -167,8 +159,16 @@ public class ScheduleImpl extends ScheduleSpecification {
     }
 
     @Override
-    public void importDataJSON() {
+    public void importDataJSON() throws IOException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .create();
 
+       List<Appointment> appointments;
+        try (FileReader fr = new FileReader("1.json")) {
+            appointments = gson.fromJson(fr, new TypeToken<List<Appointment>>(){}.getType());
+        }
+        getAppointments().addAll(appointments);
     }
 
     @Override
@@ -178,40 +178,49 @@ public class ScheduleImpl extends ScheduleSpecification {
             document.addPage(page);
 
             try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                // Export Student Information
-                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+                // Info o rasporedu:
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 24);
                 contentStream.beginText();
                 contentStream.newLineAtOffset(50, 600);
                 contentStream.showText("Schedule Information");
-                //contentStream.setFont(PDType1Font.TIMES_ROMAN, 12);
+                contentStream.setFont(PDType1Font.HELVETICA, 8);
                 contentStream.newLineAtOffset(0, -20);
-                //contentStream.beginText();
-                String headers = "Name, Surname, Group, Index";
+
+                String header = "Room, Date, From , To, Other";
+                contentStream.showText(header);
+                contentStream.newLineAtOffset(0, -20);
                 for (Appointment appointment : getAppointments()) {
                     String scheduleData = appointment.getRoom().getName() + ", "
-                            + appointment.getDateFrom() + ", "
-                            + appointment.getDateTo() + ", "
+                            + appointment.getDateFrom().toLocalDate() + ", "
+                            + appointment.getDateFrom().toLocalTime() + " - "
+                            + appointment.getDateTo().toLocalTime() + " "
                             + appointment.getRelatedData();
+
                     contentStream.showText(scheduleData);
                     contentStream.newLineAtOffset(0, -15);
                 }
 
-                // Export Room Information
-                //contentStream.setFont(PDType1Font.HELVETICA_BOLD, 12);
+                // Info about rooms
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 24);
                 contentStream.newLineAtOffset(0, -30);
                 contentStream.showText("Room Information");
-                contentStream.setFont(PDType1Font.HELVETICA, 12);
+                contentStream.setFont(PDType1Font.HELVETICA, 8);
                 contentStream.newLineAtOffset(0, -20);
-                ///contentStream.beginText();
-                String roomHeaders = "Name, Capacity, Other";
+
+                String roomHeader = "Name, Capacity";
+                contentStream.showText(roomHeader);
+                contentStream.newLineAtOffset(0, -20);
                 for (Room room : getMetaData().getRooms()) {
-                    String roomData = room.getName() + ", " + room.getCapacity() + ", " + room.getEquipment();
-                    //contentStream.showText(roomData);
+                    String roomData = room.getName() + ", "
+                            + room.getCapacity() + "  "
+                            + "seats";
+                    System.out.println(roomData);
+                    contentStream.showText(roomData);
                     contentStream.newLineAtOffset(0, -15);
                 }
 
             }
-            document.save("p.pdf");
+            document.save(fileName);
         } catch (IOException e) {
             e.printStackTrace();
         }
