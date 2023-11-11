@@ -51,7 +51,7 @@ public abstract class ScheduleSpecification {
         List<Appointment> group = new ArrayList<>();
 
         for(Appointment a : appointments){
-            if(a.getRelatedData().get(relatedDataKey).contains(relatedDataValue)){
+            if(a.getRelatedData().containsKey(relatedDataKey) && a.getRelatedData().get(relatedDataKey).contains(relatedDataValue)){
                 group.add(a); //related data
             }
         }
@@ -98,6 +98,31 @@ public abstract class ScheduleSpecification {
 
     public List<Appointment> resetFilter(){
         return appointments;
+    }
+
+    public boolean checkAvailable(Appointment a, Appointment b){
+
+
+        return true;
+    }
+    public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue){
+        List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue);
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+
+            for(Appointment f : filter){
+                if(!f.getDateFrom().isBefore(a.getDateFrom()) && !f.getDateFrom().isAfter(a.getDateTo())){ //ovo je kada se termin profesore nalazi u intervalu dva datuma
+                    System.out.println();
+                }
+            }
+
+
+        }
+
+
+
+        return group;
     }
 
     public List<Appointment> searchByAvailableAppointments(){
