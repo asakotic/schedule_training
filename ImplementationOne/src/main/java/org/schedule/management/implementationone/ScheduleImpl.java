@@ -106,71 +106,6 @@ public class ScheduleImpl extends ScheduleSpecification {
             endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         }
     }
-
-    public void exportDataCSV(String fileName, String configpath){
-
-        List<ConfigMapping> configMap = importConfig(configpath);
-        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
-        FileWriter fileWriter = null;
-        CSVPrinter csvPrinter = null;
-        getAppointments().sort(Appointment::compareTo);
-        try {
-            fileWriter = new FileWriter(fileName);
-            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-            for (Appointment appointment : this.getAppointments()) {
-
-                List<String> toAdd = new ArrayList<>();
-                for (ConfigMapping row : configMap) {
-                    String userLbl = row.getUserLabel();
-
-                    switch (row.getPrimaryLabel()) {
-                        case "room" -> toAdd.add(appointment.getRoom().getName());
-                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
-                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
-                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
-                        case "day" -> toAdd.add(appointment.getDay().toString());
-                    }
-                }
-                csvPrinter.printRecord(toAdd);
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }finally {
-            try {
-                csvPrinter.close();
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    public void exportDataJSON(List<Appointment> appointments, String fileName){
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class,new LocalDateTimeAdapter())
-                .setPrettyPrinting()
-                .create();
-        try (PrintStream writer = new PrintStream(fileName)) {
-            gson.toJson(appointments, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void importDataJSON() throws IOException {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .create();
-
-       List<Appointment> appointments;
-        try (FileReader fr = new FileReader("1.json")) {
-            appointments = gson.fromJson(fr, new TypeToken<List<Appointment>>(){}.getType());
-        }
-        getAppointments().addAll(appointments);
-    }
-
     @Override
     public void exportDataPDF(String fileName) {
         try (PDDocument document = new PDDocument()) {
@@ -224,6 +159,18 @@ public class ScheduleImpl extends ScheduleSpecification {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void importDataJSON() throws IOException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .create();
+
+        List<Appointment> appointments;
+        try (FileReader fr = new FileReader("1.json")) {
+            appointments = gson.fromJson(fr, new TypeToken<List<Appointment>>(){}.getType());
+        }
+        getAppointments().addAll(appointments);
     }
 
 }

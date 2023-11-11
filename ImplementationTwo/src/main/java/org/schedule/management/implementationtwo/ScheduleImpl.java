@@ -145,15 +145,4 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
 
     }
-
-    @Override
-    public void exportDataCSV(String fileName, String configpath) {
-
-    }
-
-    @Override
-    public void exportDataJSON(List<Appointment> appointments, String fileName) {
-
-    }
-
 }

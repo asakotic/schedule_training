@@ -2,10 +2,12 @@ package org.schedule.management.specification.models;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
 
 import java.io.*;
 import java.time.LocalDateTime;
@@ -23,8 +25,6 @@ public abstract class ScheduleSpecification {
     public abstract void importDataCSV(String file,String config) throws IOException;
     public abstract void importDataJSON() throws IOException; // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF(String fileName);
-    public abstract void exportDataCSV(String fileName, String configpath);
-    public abstract void exportDataJSON(List<Appointment> appointments, String fileName);
     public  void search(){}
     public void importMeta(){
         metaData = MetaData.importMeta();
@@ -102,6 +102,56 @@ public abstract class ScheduleSpecification {
             }
         }
         return map;
+    }
+    public void exportDataCSV(String fileName, String configpath, List<Appointment> appointments){
+
+        List<ConfigMapping> configMap = importConfig(configpath);
+        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
+        FileWriter fileWriter = null;
+        CSVPrinter csvPrinter = null;
+        getAppointments().sort(Appointment::compareTo);
+        try {
+            fileWriter = new FileWriter(fileName);
+            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+            for (Appointment appointment : appointments) {
+
+                List<String> toAdd = new ArrayList<>();
+                for (ConfigMapping row : configMap) {
+                    String userLbl = row.getUserLabel();
+
+                    switch (row.getPrimaryLabel()) {
+                        case "room" -> toAdd.add(appointment.getRoom().getName());
+                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
+                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
+                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
+                        case "day" -> toAdd.add(appointment.getDay().toString());
+                    }
+                }
+                csvPrinter.printRecord(toAdd);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                csvPrinter.close();
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    public void exportDataJSON(List<Appointment> appointments, String fileName){
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class,new LocalDateTimeAdapter())
+                .setPrettyPrinting()
+                .create();
+        try (PrintStream writer = new PrintStream(fileName)) {
+            gson.toJson(appointments, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
