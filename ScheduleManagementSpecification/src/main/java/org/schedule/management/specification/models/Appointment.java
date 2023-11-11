@@ -56,10 +56,10 @@ public class Appointment implements Comparable<Appointment>{
 
     @Override
     public int compareTo(Appointment o) {
-        int a = this.getDateFrom().toLocalDate().compareTo(o.dateFrom.toLocalDate());
+        int a = this.getRoom().getName().compareTo(o.room.getName());
         if(a != 0) return a;
 
-        a = this.getRoom().getName().compareTo(o.room.getName());
+        a = this.getDateFrom().toLocalDate().compareTo(o.dateFrom.toLocalDate());
         if(a != 0) return a;
 
         return this.getDateFrom().toLocalTime().compareTo(o.dateFrom.toLocalTime());

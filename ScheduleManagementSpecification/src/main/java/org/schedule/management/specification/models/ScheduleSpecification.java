@@ -10,8 +10,10 @@ import org.apache.commons.csv.CSVPrinter;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
 
 import java.io.*;
+import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -47,11 +49,13 @@ public abstract class ScheduleSpecification {
 
     public List<Appointment> filterRelatedData(List<Appointment> appointments, String relatedDataKey, String relatedDataValue){
         List<Appointment> group = new ArrayList<>();
+
         for(Appointment a : appointments){
             if(a.getRelatedData().get(relatedDataKey).contains(relatedDataValue)){
                 group.add(a); //related data
             }
         }
+
         return group;
     }
     public List<Appointment> filterDate(List<Appointment> appointments, LocalDate dateFrom, LocalDate dateTo){
@@ -73,6 +77,7 @@ public abstract class ScheduleSpecification {
             if(!greater && capacity > Integer.parseInt(a.getRoom().getCapacity()))
                 group.add(a);
         }
+
         return group;
     }
 
@@ -95,9 +100,34 @@ public abstract class ScheduleSpecification {
         return appointments;
     }
 
-    public void searchByAvailableAppointments(){
+    public List<Appointment> searchByAvailableAppointments(){
+        List<Appointment> group = new ArrayList<>();
+        List<Room> rooms = metaData.getRooms();
+        LocalDate startDateTime = metaData.getScheduleValidFrom();
+        LocalDate endDateTime = metaData.getScheduleValidTo();
+
+        for(Room a : rooms){
+            while(!startDateTime.isAfter(endDateTime)){
+                LocalTime startWorkingHours = metaData.getWorkingHours().get(startDateTime.getDayOfWeek()).getOpeningTime();
+                LocalTime endWorkingHours = metaData.getWorkingHours().get(startDateTime.getDayOfWeek()).getClosingTime();
 
 
+                for(Appointment appointment : appointments){
+
+                }
+
+
+
+
+                startDateTime = startDateTime.plusDays(1);
+            }
+        }
+
+
+
+
+
+        return group;
     }
 
     public  void search(){
@@ -125,12 +155,12 @@ public abstract class ScheduleSpecification {
         if (start.isAfter(end))return false;
         for(Appointment a : this.getAppointments()){
             if(!a.getRoom().getName().equals(appointment.getRoom().getName())) continue;
-            LocalDateTime astart= a.getDateFrom();
-            LocalDateTime aend= a.getDateFrom();
-            if(start.isAfter(astart) && start.isBefore(aend) ||
-                end.isBefore(aend) && end.isAfter(astart) ||
-                start.isBefore(astart) && end.isAfter(aend) ||
-                start.isAfter(astart) && end.isBefore(aend)) {
+            LocalDateTime aStart= a.getDateFrom();
+            LocalDateTime aEnd= a.getDateFrom();
+            if(start.isAfter(aStart) && start.isBefore(aEnd) ||
+                end.isBefore(aEnd) && end.isAfter(aStart) ||
+                start.isBefore(aStart) && end.isAfter(aEnd) ||
+                start.isAfter(aStart) && end.isBefore(aEnd)) {
                 return false;
             }
         }
