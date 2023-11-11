@@ -18,6 +18,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ScheduleImpl extends ScheduleSpecification {
@@ -40,26 +41,18 @@ public class ScheduleImpl extends ScheduleSpecification {
 
 
                 switch (configMap.get(index).getPrimaryLabel()) {
-                    case "room":
-                        List<Room> rooms =  this.getMetaData().getRooms();
-                        for(Room r: rooms){
-                            if(r.getName().equals(i.get(index))){
+                    case "room" -> {
+                        List<Room> rooms = this.getMetaData().getRooms();
+                        for (Room r : rooms) {
+                            if (r.getName().equals(i.get(index))) {
                                 ap.setRoom(r);
                             }
                         }
-                        break;
-                    case "startDate":
-                        startDateTime = LocalDateTime.parse(i.get(index), formatter);
-                        break;
-                    case "endDate":
-                        endDateTime = LocalDateTime.parse(i.get(index), formatter);
-                        break;
-                    case "relatedData":
-                        ap.getRelatedData().put(userLbl, i.get(index));
-                        break;
-                    case "day":
-                        ap.setDay(DayOfWeek.valueOf(i.get(index)));
-                        break;
+                    }
+                    case "startDate" -> startDateTime = LocalDateTime.parse(i.get(index), formatter);
+                    case "endDate" -> endDateTime = LocalDateTime.parse(i.get(index), formatter);
+                    case "relatedData" -> ap.getRelatedData().put(userLbl, i.get(index));
+                    case "day" -> ap.setDay(DayOfWeek.valueOf(i.get(index)));
                 }
             }
             if(startDateTime == null || endDateTime == null || ap.getDay() ==null) return;// TODO baci eksepsn
@@ -95,18 +88,57 @@ public class ScheduleImpl extends ScheduleSpecification {
 
     }
 
+    private boolean checkSameAppointments(Appointment a, Appointment b){
+        return a.getRoom() == b.getRoom() && a.getDateFrom().toLocalTime() == b.getDateFrom().toLocalTime()
+                && a.getDateTo().toLocalTime() == b.getDateTo().toLocalTime();
+    }
+
+    private void checkGroup(List<Appointment> group, Appointment a){
+        for(Appointment appointment : group){
+            if(checkSameAppointments(appointment, a)){
+              appointment.setDateTo(a.getDateTo());
+              return;
+            }
+        }
+        group.add(a);
+    }
+
+    private List<Appointment> createGroup(){
+        List<Appointment> group = new ArrayList<>();
+        for (Appointment a : this.getAppointments()) checkGroup(group, a);
+        return group;
+    }
+
     @Override
     public void exportDataPDF(String fileName) {
         try{
-            System.out.println("ERRssOR");
             Document document = new Document();
-            PdfWriter.getInstance(document, new FileOutputStream("file.pdf"));
+            PdfWriter.getInstance(document, new FileOutputStream(fileName));
 
             document.open();
-            Font font = FontFactory.getFont(FontFactory.COURIER, 16, BaseColor.BLACK);
-            Chunk chunk = new Chunk("Hello World", font);
+            Font font = FontFactory.getFont(FontFactory.TIMES, 9, BaseColor.BLACK);
+            List<Appointment> group = createGroup();
+            document.add(new Paragraph("Schedule Information", FontFactory.getFont(FontFactory.TIMES, 31, BaseColor.BLACK)));
 
-            document.add(chunk);
+            for(Appointment appointment : group){
+                StringBuilder sb = new StringBuilder();
+                sb.append(appointment.getRoom().getName());
+                sb.append(" ");
+                sb.append(appointment.getDateFrom().toLocalDate());
+                sb.append(" ");
+                sb.append(appointment.getDateTo().toLocalDate());
+                sb.append(" ");
+                sb.append(appointment.getDateFrom().toLocalTime());
+                sb.append("-");
+                sb.append(appointment.getDateTo().toLocalTime());
+                sb.append(" ");
+                sb.append(appointment.getRelatedData());
+                sb.append(" ");
+                Chunk chunk = new Chunk(sb.toString(), font);
+                document.add(chunk);
+                document.add(new Paragraph("\n"));
+            }
+
             document.close();
         }catch (Exception e){
             System.out.println(e);
