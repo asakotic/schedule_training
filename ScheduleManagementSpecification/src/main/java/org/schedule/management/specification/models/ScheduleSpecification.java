@@ -107,7 +107,7 @@ public abstract class ScheduleSpecification {
 
     public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
 
-        List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue);
+        List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue); // sve gde je neko zauzet
         List<Appointment> group = new ArrayList<>();
 
         ListIterator<Appointment> i = appointments.listIterator();
@@ -116,7 +116,7 @@ public abstract class ScheduleSpecification {
             Appointment a = i.next();
             boolean check = false;
             for (Appointment f : filter) {
-                if (!f.getDateFrom().isBefore(a.getDateFrom()) && !f.getDateFrom().isAfter(a.getDateTo())) { //ovo je kada se termin profesora nalazi u intervalu dva datuma
+                if (f.getDateFrom().isAfter(a.getDateFrom()) && f.getDateTo().isBefore(a.getDateTo())) { //ovo je kada se termin profesora nalazi u intervalu dva datuma
                     Appointment pom = new Appointment(a.getRoom(), f.getDateTo(), a.getDateTo());
                     a.setDateTo(f.getDateFrom());
                     i.set(a);
@@ -124,13 +124,26 @@ public abstract class ScheduleSpecification {
                     check = true;
                     break;
                 }
+                if(f.getDateTo().isBefore(a.getDateTo()) && f.getDateFrom().isAfter(a.getDateFrom())){
+                    i.remove();
+                    break;
+                }
+                if(f.getDateFrom().isAfter(a.getDateFrom()) && f.getDateTo().isAfter(a.getDateTo())
+                        && !f.getDateFrom().isBefore(a.getDateTo())){
+                    a.setDateTo(f.getDateFrom());
+                    i.set(a);
+                    break;
+                }
+                if(f.getDateFrom().isBefore(a.getDateFrom()) && f.getDateTo().isAfter(a.getDateFrom()) &&
+                !f.getDateTo().isAfter(a.getDateTo())){
+                    a.setDateFrom(f.getDateTo());
+                    i.set(a);
+                    break;
+                }
             }
-            if(!check){
-                i.previous();
-            }
+            if(check) i.previous();
         }
-
-        return group;
+        return appointments;
     }
 
     public List<Appointment> searchByAvailableAppointments() {
@@ -175,11 +188,6 @@ public abstract class ScheduleSpecification {
 
         }
         return group;
-    }
-
-    public void search() {
-
-
     }
 
     public void importMeta() {
