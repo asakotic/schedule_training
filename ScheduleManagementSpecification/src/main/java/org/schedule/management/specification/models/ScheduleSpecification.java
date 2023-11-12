@@ -105,12 +105,6 @@ public abstract class ScheduleSpecification {
         return appointments;
     }
 
-    public boolean checkAvailable(Appointment a, Appointment b) {
-
-
-        return true;
-    }
-
     public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
 
         List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue);
