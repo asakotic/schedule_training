@@ -122,9 +122,12 @@ public abstract class ScheduleSpecification {
                     i.set(a);
                     i.add(pom);
                     check = true;
+                    break;
                 }
             }
-            if(!check) group.add(a);
+            if(!check){
+                i.previous();
+            }
         }
 
         return group;
