@@ -1,46 +1,5 @@
 [
   {
-    "day": "MONDAY",
-    "room": {
-      "name": "RAF2",
-      "capacity": "20",
-      "equipment": {
-        "Klima uređaj": 1,
-        "Računari": 25,
-        "Projektor": 1
-      }
-    },
-    "relatedData": {
-      "Grupe": "101, 102, 103",
-      "Predmet": "Uvod u programiranje",
-      "Tip": "P",
-      "Nastavnik": "Urosevic Dragan"
-    },
-    "dateFrom": "2023-10-02T11:15:00",
-    "dateTo": "2023-10-02T21:00:00"
-  },
-  {
-    "day": "MONDAY",
-    "room": {
-      "name": "RG07",
-      "capacity": "30",
-      "equipment": {
-        "Klima uređaj": 1,
-        "Računari": 30,
-        "Projektor": 1,
-        "Tabla": 2
-      }
-    },
-    "relatedData": {
-      "Grupe": "101",
-      "Predmet": "Uvod u programiranje",
-      "Tip": "D",
-      "Nastavnik": "Brnabic Mateja"
-    },
-    "dateFrom": "2023-10-02T13:15:00",
-    "dateTo": "2023-10-02T15:00:00"
-  },
-  {
     "day": "TUESDAY",
     "room": {
       "name": "RAF1",
@@ -59,6 +18,26 @@
     },
     "dateFrom": "2023-10-03T15:15:00",
     "dateTo": "2023-10-03T17:00:00"
+  },
+  {
+    "day": "MONDAY",
+    "room": {
+      "name": "RAF2",
+      "capacity": "20",
+      "equipment": {
+        "Klima uređaj": 1,
+        "Računari": 25,
+        "Projektor": 1
+      }
+    },
+    "relatedData": {
+      "Grupe": "101, 102, 103",
+      "Predmet": "Uvod u programiranje",
+      "Tip": "P",
+      "Nastavnik": "Urosevic Dragan"
+    },
+    "dateFrom": "2023-10-02T11:15:00",
+    "dateTo": "2023-10-02T21:00:00"
   },
   {
     "day": "TUESDAY",
@@ -177,5 +156,26 @@
     },
     "dateFrom": "2023-10-05T09:00:00",
     "dateTo": "2023-10-05T18:00:00"
+  },
+  {
+    "day": "MONDAY",
+    "room": {
+      "name": "RG07",
+      "capacity": "30",
+      "equipment": {
+        "Klima uređaj": 1,
+        "Računari": 30,
+        "Projektor": 1,
+        "Tabla": 2
+      }
+    },
+    "relatedData": {
+      "Grupe": "101",
+      "Predmet": "Uvod u programiranje",
+      "Tip": "D",
+      "Nastavnik": "Brnabic Mateja"
+    },
+    "dateFrom": "2023-10-02T13:15:00",
+    "dateTo": "2023-10-02T15:00:00"
   }
 ]

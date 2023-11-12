@@ -1,31 +1,34 @@
 package org.schedule.management.implementationtwo;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.itextpdf.text.*;
 
 import com.itextpdf.text.pdf.PdfWriter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
+import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class ScheduleImpl extends ScheduleSpecification {
     @Override
-    public void importDataCSV(String filepath, String configpath) throws IOException {
-        List<ConfigMapping> configMap = importConfig(configpath);
-        FileReader fr = new FileReader(filepath);
+    public void importDataCSV(String filePath, String configPath) throws IOException {
+        List<ConfigMapping> configMap = importConfig(configPath);
+        FileReader fr = new FileReader(filePath);
         CSVParser csvParser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build().parse(fr);
         this.setHeaders(csvParser.getHeaderNames());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
@@ -84,7 +87,7 @@ public class ScheduleImpl extends ScheduleSpecification {
     }
 
     @Override
-    public void importDataJSON() {
+    public void importDataJSON(String filePath) {
 
     }
 
@@ -103,21 +106,21 @@ public class ScheduleImpl extends ScheduleSpecification {
         group.add(a);
     }
 
-    private List<Appointment> createGroup(){
+    private List<Appointment> createGroup(List<Appointment> appointments){
         List<Appointment> group = new ArrayList<>();
-        for (Appointment a : this.getAppointments()) checkGroup(group, a);
+        for (Appointment a : appointments) checkGroup(group, a);
         return group;
     }
 
     @Override
-    public void exportDataPDF(String fileName) {
+    public void exportDataPDF(String fileName, List<Appointment> appointments) {
         try{
             Document document = new Document();
             PdfWriter.getInstance(document, new FileOutputStream(fileName));
 
             document.open();
             Font font = FontFactory.getFont(FontFactory.TIMES, 9, BaseColor.BLACK);
-            List<Appointment> group = createGroup();
+            List<Appointment> group = createGroup(appointments);
             document.add(new Paragraph("Schedule Information", FontFactory.getFont(FontFactory.TIMES, 31, BaseColor.BLACK)));
 
             for(Appointment appointment : group){
@@ -138,11 +141,66 @@ public class ScheduleImpl extends ScheduleSpecification {
                 document.add(chunk);
                 document.add(new Paragraph("\n"));
             }
-
             document.close();
         }catch (Exception e){
             System.out.println(e);
         }
-
     }
+    public void exportDataJSON(String fileName, List<Appointment> appointments) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .setPrettyPrinting()
+                .create();
+        try (PrintStream writer = new PrintStream(fileName)) {
+            gson.toJson(createGroup(appointments), writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) {
+
+        List<ConfigMapping> configMap = importConfig(configPath);
+        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
+        FileWriter fileWriter = null;
+        CSVPrinter csvPrinter = null;
+        getAppointments().sort(Appointment::compareTo);
+        try {
+            fileWriter = new FileWriter(fileName);
+            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+            for (Appointment appointment : createGroup(appointments)) {
+
+                List<String> toAdd = new ArrayList<>();
+                for (ConfigMapping row : configMap) {
+                    String userLbl = row.getUserLabel();
+
+                    switch (row.getPrimaryLabel()) {
+                        case "room" -> toAdd.add(appointment.getRoom().getName());
+                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
+                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
+                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
+                        case "day" -> toAdd.add(appointment.getDay().toString());
+                    }
+                }
+                csvPrinter.printRecord(toAdd);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                csvPrinter.close();
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void exportDataConsole(List<Appointment> appointments) {
+        System.out.println(createGroup(appointments));
+    }
+
 }

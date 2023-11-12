@@ -36,8 +36,8 @@ public class MetaData {
             .registerTypeAdapter(LocalTime.class,new TimeAdapter())
             .create();
 
-    public static MetaData importMeta(){
-        try (Reader reader = new FileReader("D:\\Education\\Racunarski Fakultet\\Treci semestar\\schedule-management-component-implementation\\ScheduleManagementSpecification\\src\\main\\resources\\metadata.json")) {
+    public static MetaData importMeta(String metaDataPath){
+        try (Reader reader = new FileReader(metaDataPath)) {
             MetaData staff = gson.fromJson(reader, MetaData.class);
 
             ArrayList<String> holidaysPom = new ArrayList<>();

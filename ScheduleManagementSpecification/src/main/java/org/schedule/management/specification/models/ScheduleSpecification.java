@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
 
 @Getter
 @Setter
@@ -27,10 +28,11 @@ public abstract class ScheduleSpecification {
     private List<String> headers;
 
     public abstract void importDataCSV(String file, String config) throws IOException;
-
-    public abstract void importDataJSON() throws IOException; // uzme sobe, uzme praznike, meta podaci
-
-    public abstract void exportDataPDF(String fileName);
+    public abstract void importDataJSON(String filePath) throws IOException; // uzme sobe, uzme praznike, meta podaci
+    public abstract void exportDataPDF(String fileName, List<Appointment> appointments);
+    public abstract  void exportDataJSON(String fileName, List<Appointment> appointments);
+    public abstract void exportDataCSV(String fileName, String configPath, List<Appointment> appointments);
+    public abstract void exportDataConsole(List<Appointment> appointments);
 
     //da ima racunar, da ima vise od 10 racunara, da nema racunar
     public List<Appointment> filterEquipment(List<Appointment> appointments, String equipment, int quantity) {
@@ -190,8 +192,8 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
-    public void importMeta() {
-        metaData = MetaData.importMeta();
+    public void importMeta(String metaDataPath) {
+        metaData = MetaData.importMeta(metaDataPath);
         System.out.println(metaData);
     }
 
@@ -245,7 +247,6 @@ public abstract class ScheduleSpecification {
                 && addAppointment(appointment);
     }
 
-
     protected List<ConfigMapping> importConfig(String configPath) {
         List<ConfigMapping> map = new ArrayList<>();
         int br = 0;
@@ -270,58 +271,6 @@ public abstract class ScheduleSpecification {
             }
         }
         return map;
-    }
-
-    public void exportDataCSV(String fileName, String configpath, List<Appointment> appointments) {
-
-        List<ConfigMapping> configMap = importConfig(configpath);
-        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
-        FileWriter fileWriter = null;
-        CSVPrinter csvPrinter = null;
-        getAppointments().sort(Appointment::compareTo);
-        try {
-            fileWriter = new FileWriter(fileName);
-            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-            for (Appointment appointment : appointments) {
-
-                List<String> toAdd = new ArrayList<>();
-                for (ConfigMapping row : configMap) {
-                    String userLbl = row.getUserLabel();
-
-                    switch (row.getPrimaryLabel()) {
-                        case "room" -> toAdd.add(appointment.getRoom().getName());
-                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
-                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
-                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
-                        case "day" -> toAdd.add(appointment.getDay().toString());
-                    }
-                }
-                csvPrinter.printRecord(toAdd);
-
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                csvPrinter.close();
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void exportDataJSON(List<Appointment> appointments, String fileName) {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                .setPrettyPrinting()
-                .create();
-        try (PrintStream writer = new PrintStream(fileName)) {
-            gson.toJson(appointments, writer);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

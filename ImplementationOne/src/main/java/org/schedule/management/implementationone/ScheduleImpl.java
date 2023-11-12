@@ -107,7 +107,7 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
     @Override
-    public void exportDataPDF(String fileName) {
+    public void exportDataPDF(String fileName, List<Appointment> appointments) {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.A4);
             document.addPage(page);
@@ -124,7 +124,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                 String header = "Room, Date, From , To, Other";
                 contentStream.showText(header);
                 contentStream.newLineAtOffset(0, -20);
-                for (Appointment appointment : getAppointments()) {
+                for (Appointment appointment : appointments) {
                     String scheduleData = appointment.getRoom().getName() + ", "
                             + appointment.getDateFrom().toLocalDate() + ", "
                             + appointment.getDateFrom().toLocalTime() + " - "
@@ -161,16 +161,71 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
 
-    public void importDataJSON() throws IOException {
+    public void importDataJSON(String filePath) throws IOException {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .create();
 
         List<Appointment> appointments;
-        try (FileReader fr = new FileReader("1.json")) {
+        try (FileReader fr = new FileReader(filePath)) {
             appointments = gson.fromJson(fr, new TypeToken<List<Appointment>>(){}.getType());
         }
         getAppointments().addAll(appointments);
     }
+    public void exportDataJSON(String fileName, List<Appointment> appointments) {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .setPrettyPrinting()
+                .create();
+        try (PrintStream writer = new PrintStream(fileName)) {
+            gson.toJson(appointments, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) {
+
+        List<ConfigMapping> configMap = importConfig(configPath);
+        configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
+        FileWriter fileWriter = null;
+        CSVPrinter csvPrinter = null;
+        getAppointments().sort(Appointment::compareTo);
+        try {
+            fileWriter = new FileWriter(fileName);
+            csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+            for (Appointment appointment : appointments) {
+
+                List<String> toAdd = new ArrayList<>();
+                for (ConfigMapping row : configMap) {
+                    String userLbl = row.getUserLabel();
+
+                    switch (row.getPrimaryLabel()) {
+                        case "room" -> toAdd.add(appointment.getRoom().getName());
+                        case "startDate" -> toAdd.add(appointment.getDateFrom().format(formatter));
+                        case "endDate" -> toAdd.add(appointment.getDateTo().format(formatter));
+                        case "relatedData" -> toAdd.add(appointment.getRelatedData().get(userLbl));
+                        case "day" -> toAdd.add(appointment.getDay().toString());
+                    }
+                }
+                csvPrinter.printRecord(toAdd);
+
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                csvPrinter.close();
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void exportDataConsole(List<Appointment> appointments) {
+        System.out.println(appointments);
+    }
 }
