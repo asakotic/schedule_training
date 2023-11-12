@@ -110,19 +110,23 @@ public abstract class ScheduleSpecification {
         List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue);
         List<Appointment> group = new ArrayList<>();
 
-        for (Appointment a : appointments) { //svi termini koje imamo
+        ListIterator<Appointment> i = appointments.listIterator();
+
+        while(i.hasNext()){
+            Appointment a = i.next();
             boolean check = false;
-            for (Appointment f : filter) { //svi termini za profesora
+            for (Appointment f : filter) {
                 if (!f.getDateFrom().isBefore(a.getDateFrom()) && !f.getDateFrom().isAfter(a.getDateTo())) { //ovo je kada se termin profesora nalazi u intervalu dva datuma
                     Appointment pom = new Appointment(a.getRoom(), f.getDateTo(), a.getDateTo());
                     a.setDateTo(f.getDateFrom());
-                    group.add(a);
-                    group.add(pom);
+                    i.set(a);
+                    i.add(pom);
                     check = true;
                 }
             }
-            if(check) group.add(a);
+            if(!check) group.add(a);
         }
+
         return group;
     }
 
