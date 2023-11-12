@@ -112,21 +112,23 @@ public abstract class ScheduleSpecification {
     }
 
     public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
+
         List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue);
         List<Appointment> group = new ArrayList<>();
 
-        for (Appointment a : appointments) {
-
-            for (Appointment f : filter) {
-                if (!f.getDateFrom().isBefore(a.getDateFrom()) && !f.getDateFrom().isAfter(a.getDateTo())) { //ovo je kada se termin profesore nalazi u intervalu dva datuma
-                    System.out.println();
+        for (Appointment a : appointments) { //svi termini koje imamo
+            boolean check = false;
+            for (Appointment f : filter) { //svi termini za profesora
+                if (!f.getDateFrom().isBefore(a.getDateFrom()) && !f.getDateFrom().isAfter(a.getDateTo())) { //ovo je kada se termin profesora nalazi u intervalu dva datuma
+                    Appointment pom = new Appointment(a.getRoom(), f.getDateTo(), a.getDateTo());
+                    a.setDateTo(f.getDateFrom());
+                    group.add(a);
+                    group.add(pom);
+                    check = true;
                 }
             }
-
-
+            if(check) group.add(a);
         }
-
-
         return group;
     }
 
