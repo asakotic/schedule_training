@@ -165,7 +165,7 @@ public class ScheduleImpl extends ScheduleSpecification {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(this.getMetaData().getDateFormat());
         FileWriter fileWriter = null;
         CSVPrinter csvPrinter = null;
-        getAppointments().sort(Appointment::compareTo);
+        appointments.sort(Appointment::compareTo);
         try {
             fileWriter = new FileWriter(fileName);
             csvPrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);

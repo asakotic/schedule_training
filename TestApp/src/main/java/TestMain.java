@@ -4,7 +4,7 @@ import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
 import java.io.IOException;
-import java.sql.SQLOutput;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,26 +51,139 @@ public class TestMain {
             switch (command){
                 case "1":
                     System.out.println("In which file type do you want to export table?\n" +
-                            "1. JSON\n2. CSV\n3. PDF\n4. CONSOLE");
+                            "1. JSON\n2. CSV\n3. PDF\n4. CONSOLE WITH FILTERS\n5. CONSOLE WITHOUT FILTERS");
                     command = reader.nextLine();
 
-                    switch (command){
-                        case "1":
-                            ss.exportDataJSON("1.json", appointmentList); // 2. impl 1. impl
-                            break;
-                        case "2":
-                            ss.exportDataCSV("1.csv", configPath, appointmentList); //2. impl 1. impl
-                            break;
-                        case "3":
-                            ss.exportDataPDF("1.pdf", appointmentList); //2. impl 1. impl
-                            break;
-                        case "4":
-                            ss.exportDataConsole(ss.getAppointments());
-                            break;
+                    switch (command) {
+                        case "1" -> ss.exportDataJSON("1.json", appointmentList); // 2. impl 1. impl
+                        case "2" -> ss.exportDataCSV("1.csv", configPath, appointmentList); //2. impl 1. impl
+                        case "3" -> ss.exportDataPDF("1.pdf", appointmentList); //2. impl 1. impl
+                        case "4" -> ss.exportDataConsole(appointmentList);
+                        case "5" -> ss.exportDataConsole(ss.getAppointments());
+                        default -> {
+                        }
                     }
+                    break;
+                case "2":
+                    while(true){
+                        System.out.println("Please enter filter type from list below");
+                        System.out.println("1. Filter by room");
+                        System.out.println("2. Filter by capacity");
+                        System.out.println("3. Filter by date");
+                        System.out.println("4. Filter by related data");
+                        System.out.println("5. Filter by equipment");
+                        System.out.println("6. Reset filter");
+                        System.out.println("7. Exit");
 
+                        System.out.print("Your command: ");
+                        String inputCommand = reader.nextLine();
+                        boolean breakB = false;
+
+                        switch (inputCommand){
+                            case "1":
+                                Set<Room> rooms = new HashSet<>();
+
+                                while(true){
+                                    System.out.println("Please select room from list below. Only write room name!");
+                                    for(Room r : ss.getMetaData().getRooms()){
+                                        System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
+                                    }
+                                    System.out.print("Enter room, write exit to stop adding rooms: ");
+                                    String room = reader.nextLine();
+
+                                    if(room.equalsIgnoreCase("exit"))
+                                        break;
+
+                                    Room send = null;
+
+                                    for(Room r : ss.getMetaData().getRooms()){
+                                        if(r.getName().equalsIgnoreCase(room)) {
+                                            send = r;
+                                            break;
+                                        }
+                                    }
+                                    if(send == null){
+                                        System.out.println("You did not enter valid room!");
+                                        continue;
+                                    }
+
+                                    rooms.add(send);
+                                }
+
+                                appointmentList = ss.filterByRoom(appointmentList, rooms);
+                                break;
+                            case "2":
+                                System.out.print("Enter capacity number: ");
+                                String capacity = reader.nextLine();
+
+                                System.out.print("Do you want more or less then your number (Greater or Less)? ");
+                                String greater = reader.nextLine();
+
+                                if(greater.equalsIgnoreCase("Greater"))
+                                    appointmentList = ss.filterCapacity(appointmentList, true, Integer.parseInt(capacity));
+                                else
+                                    appointmentList = ss.filterCapacity(appointmentList, false, Integer.parseInt(capacity));
+
+                                break;
+                            case "3":
+                                System.out.print("Enter date from (YYYY-MM-DD): ");
+                                String d1 = reader.nextLine();
+
+                                LocalDate localDateFrom = LocalDate.parse(d1);
+
+                                System.out.print("Enter date to (YYYY-MM-DD): ");
+                                String d2 = reader.nextLine();
+
+                                LocalDate localDateTo = LocalDate.parse(d2);
+
+                                appointmentList = ss.filterDate(appointmentList, localDateFrom, localDateTo);
+
+                                break;
+                            case "4":
+                                while(true){
+                                    System.out.println("Please enter related data from list below");
+                                    int i = 0;
+                                    for(String s : ss.getListRelatedData()){
+                                        System.out.println(i++ + ". " + s);
+                                    }
+                                    System.out.print("Enter command number, or exit to end: ");
+                                    String input = reader.nextLine();
+
+                                    if(input.equalsIgnoreCase("exit"))
+                                        break;
+
+                                    System.out.print("Enter value for " + ss.getListRelatedData().toArray()[Integer.parseInt(input)] +": ");
+                                    String input2 = reader.nextLine();
+
+                                    appointmentList = ss.filterRelatedData(appointmentList, (String) ss.getListRelatedData().toArray()[Integer.parseInt(input)],
+                                            input2);
+
+                                }
+
+                                break;
+                            case "5":
+                                System.out.print("Please enter equipment name: ");
+                                String equipmentName = reader.nextLine();
+                                System.out.print("Please enter quantity, type 0 if you want rooms without that specific equipment: ");
+                                String equipmentQuantity = reader.nextLine();
+                                appointmentList = ss.filterEquipment(appointmentList, equipmentName, Integer.parseInt(equipmentQuantity));
+                                break;
+                            case "6":
+                                appointmentList = ss.getAppointments();
+                                break;
+                            case "7":
+                                breakB = true;
+                                break;
+
+                        }
+
+                        if(breakB) break;
+                    }
                     break;
                 case "3":
+
+                    break;
+                case "4":
                     System.out.print("Please enter room name: ");
                     String roomName = reader.nextLine();
                     System.out.print("Please enter room capacity: ");
@@ -105,7 +218,7 @@ public class TestMain {
                     if(!ss.addRoom(roomName, String.valueOf(capacity), equipment)) System.out.println("This room already exists!");
                     else System.out.println("You added new room!");
                     break;
-                case "4":
+                case "5":
                     System.out.println("Please select room from list below. Only write room name!");
                     for(Room r : ss.getMetaData().getRooms()){
                         System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
@@ -157,7 +270,7 @@ public class TestMain {
                         System.out.println("You added new appointment!");
                     else System.out.println("This appointment already exists!");
                     break;
-                case "5":
+                case "6":
 
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
                     for(Appointment a : ss.getAppointments()){ //TODO: add filters
@@ -219,7 +332,7 @@ public class TestMain {
                     }
 
                     break;
-                case "6":
+                case "7":
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
                     for(Appointment a : ss.getAppointments()){ //TODO: add filters
                         System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
@@ -231,7 +344,7 @@ public class TestMain {
                     ss.getAppointments().remove(ss.getAppointments().get(Integer.parseInt(input)));
 
                     break;
-                case "7":
+                case "8":
                     return;
             }
         }
@@ -239,12 +352,13 @@ public class TestMain {
     public static void printCommands(){
         System.out.println("Please enter one of the following commands:");
         System.out.println("1. Export (CSV, JSON, PDF, CONSOLE)");
-        System.out.println("2. Search (find available and taken appointments)");
-        System.out.println("3. Add room");
-        System.out.println("4. Add appointment");
-        System.out.println("5. Reschedule appointment");
-        System.out.println("6. Delete appointment");
-        System.out.println("7. Exit :(\n");
+        System.out.println("2. Search (find taken)");
+        System.out.println("3. Search (find available)");
+        System.out.println("4. Add room");
+        System.out.println("5. Add appointment");
+        System.out.println("6. Reschedule appointment");
+        System.out.println("7. Delete appointment");
+        System.out.println("8. Exit :(\n");
     }
 
 

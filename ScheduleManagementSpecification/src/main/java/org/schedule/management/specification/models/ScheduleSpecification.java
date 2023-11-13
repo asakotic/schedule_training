@@ -40,12 +40,12 @@ public abstract class ScheduleSpecification {
         List<Appointment> group = new ArrayList<>();
 
         for (Appointment a : appointments) {
-            if (quantity == 0 && !(a.getRoom().getEquipment().containsKey(equipment))) {
+            if (quantity == 0 && !a.getRoom().getEquipment().containsKey(equipment)) {
                 group.add(a);
                 continue;
             }
             if ((a.getRoom().getEquipment().containsKey(equipment)) &&
-                    a.getRoom().getEquipment().get(equipment) >= quantity) {
+                    a.getRoom().getEquipment().get(equipment) >= quantity && quantity > 0) {
                 group.add(a);
             }
         }
@@ -89,11 +89,11 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
-    public List<Appointment> filterByRoom(List<Appointment> appointments, List<String> rooms) {
+    public List<Appointment> filterByRoom(List<Appointment> appointments, Collection<Room> rooms) {
         List<Appointment> group = new ArrayList<>();
 
         for (Appointment a : appointments) {
-            if (rooms.contains(a.getRoom().getName()))
+            if (rooms.contains(a.getRoom()))
                 group.add(a);
         }
 
@@ -230,8 +230,13 @@ public abstract class ScheduleSpecification {
     }
 
     public boolean rescheduleAppointment(Appointment appointment, Appointment old) {
-        return addAppointment(appointment)
-                && getAppointments().remove(old);
+        getAppointments().remove(old);
+
+        if(addAppointment(appointment))
+            return true;
+
+        getAppointments().add(old);
+        return false;
     }
 
     protected List<ConfigMapping> importConfig(String configPath) {
