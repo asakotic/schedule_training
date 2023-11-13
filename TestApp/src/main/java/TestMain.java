@@ -169,7 +169,7 @@ public class TestMain {
                                 appointmentList = ss.filterEquipment(appointmentList, equipmentName, Integer.parseInt(equipmentQuantity));
                                 break;
                             case "6":
-                                appointmentList = ss.getAppointments();
+                                appointmentList = ss.resetFilter();
                                 break;
                             case "7":
                                 breakB = true;
@@ -181,7 +181,128 @@ public class TestMain {
                     }
                     break;
                 case "3":
+                    appointmentList = ss.searchByAvailableAppointments();
+                    System.out.println(appointmentList);
+                    while(true) {
+                        System.out.println("Please enter filter type from list below");
+                        System.out.println("1. Filter by room");
+                        System.out.println("2. Filter by capacity");
+                        System.out.println("3. Filter by date");
+                        System.out.println("4. Filter by related data");
+                        System.out.println("5. Filter by equipment");
+                        System.out.println("6. Reset filter");
+                        System.out.println("7. Exit");
 
+                        System.out.print("Your command: ");
+                        String inputCommand = reader.nextLine();
+                        boolean breakB = false;
+
+                        switch (inputCommand) {
+                            case "1":
+                                Set<Room> rooms = new HashSet<>();
+
+                                while (true) {
+                                    System.out.println("Please select room from list below. Only write room name!");
+                                    for (Room r : ss.getMetaData().getRooms()) {
+                                        System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
+                                    }
+                                    System.out.print("Enter room, write exit to stop adding rooms: ");
+                                    String room = reader.nextLine();
+
+                                    if (room.equalsIgnoreCase("exit"))
+                                        break;
+
+                                    Room send = null;
+
+                                    for (Room r : ss.getMetaData().getRooms()) {
+                                        if (r.getName().equalsIgnoreCase(room)) {
+                                            send = r;
+                                            break;
+                                        }
+                                    }
+                                    if (send == null) {
+                                        System.out.println("You did not enter valid room!");
+                                        continue;
+                                    }
+
+                                    rooms.add(send);
+                                }
+
+                                appointmentList = ss.filterByRoom(appointmentList, rooms);
+                                System.out.println(appointmentList);
+                                break;
+                            case "2":
+                                System.out.print("Enter capacity number: ");
+                                String capacity = reader.nextLine();
+
+                                System.out.print("Do you want more or less then your number (Greater or Less)? ");
+                                String greater = reader.nextLine();
+
+                                if (greater.equalsIgnoreCase("Greater"))
+                                    appointmentList = ss.filterCapacity(appointmentList, true, Integer.parseInt(capacity));
+                                else
+                                    appointmentList = ss.filterCapacity(appointmentList, false, Integer.parseInt(capacity));
+
+                                System.out.println(appointmentList);
+                                break;
+                            case "3":
+                                System.out.print("Enter date from (YYYY-MM-DD): ");
+                                String d1 = reader.nextLine();
+
+                                LocalDate localDateFrom = LocalDate.parse(d1);
+
+                                System.out.print("Enter date to (YYYY-MM-DD): ");
+                                String d2 = reader.nextLine();
+
+                                LocalDate localDateTo = LocalDate.parse(d2);
+
+                                appointmentList = ss.filterDate(appointmentList, localDateFrom, localDateTo);
+                                System.out.println(appointmentList);
+
+                                break;
+                            case "4":
+                                while (true) {
+                                    System.out.println("Please enter related data from list below");
+                                    int i = 0;
+                                    for (String s : ss.getListRelatedData()) {
+                                        System.out.println(i++ + ". " + s);
+                                    }
+                                    System.out.print("Enter command number, or exit to end: ");
+                                    String input = reader.nextLine();
+
+                                    if (input.equalsIgnoreCase("exit"))
+                                        break;
+
+                                    System.out.print("Enter value for " + ss.getListRelatedData().toArray()[Integer.parseInt(input)] + ": ");
+                                    String input2 = reader.nextLine();
+
+                                    appointmentList = ss.checkRelatedDataAvailable(appointmentList, (String) ss.getListRelatedData().toArray()[Integer.parseInt(input)],
+                                            input2);
+                                    System.out.println(appointmentList);
+
+                                }
+
+                                break;
+                            case "5":
+                                System.out.print("Please enter equipment name: ");
+                                String equipmentName = reader.nextLine();
+                                System.out.print("Please enter quantity, type 0 if you want rooms without that specific equipment: ");
+                                String equipmentQuantity = reader.nextLine();
+                                appointmentList = ss.filterEquipment(appointmentList, equipmentName, Integer.parseInt(equipmentQuantity));
+                                System.out.println(appointmentList);
+                                break;
+                            case "6":
+                                appointmentList = ss.resetFilter();
+                                System.out.println(appointmentList);
+                                break;
+                            case "7":
+                                breakB = true;
+                                break;
+
+                        }
+
+                        if (breakB) break;
+                    }
                     break;
                 case "4":
                     System.out.print("Please enter room name: ");

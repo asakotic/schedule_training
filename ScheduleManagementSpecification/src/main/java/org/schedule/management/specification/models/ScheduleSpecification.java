@@ -111,7 +111,6 @@ public abstract class ScheduleSpecification {
     public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
 
         List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue); // sve gde je neko zauzet
-        List<Appointment> group = new ArrayList<>();
 
         ListIterator<Appointment> i = appointments.listIterator();
 
