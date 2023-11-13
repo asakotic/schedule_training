@@ -2,6 +2,7 @@ package org.schedule.management.implementationtwo;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.itextpdf.text.*;
 
 import com.itextpdf.text.pdf.PdfWriter;
@@ -19,8 +20,10 @@ import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.RecursiveTask;
 
 public class ScheduleImpl extends ScheduleSpecification {
     @Override
@@ -76,21 +79,51 @@ public class ScheduleImpl extends ScheduleSpecification {
                 Appointment a = ap.copy();
                 a.setDateFrom(startDateTime);
                 a.setDateTo(startDateTime.withHour(ltEnd.getHour()).withMinute(ltEnd.getMinute()));
-                a.setDay(startDateTime.getDayOfWeek());
                 if(!this.getMetaData().getHolidays().contains(a.getDateFrom().toLocalDate().toString()))
                     this.getAppointments().add(a);
                 startDateTime = startDateTime.plusDays(7);
             }
         }
+        System.out.println(getAppointments());
+    }
+
+    public List<Appointment> degroup(List<Appointment> appointments){
+        List<Appointment> group = new ArrayList<>();
+
+        for(Appointment a : appointments){
+            LocalDateTime lcd1 = a.getDateFrom();
+            LocalDateTime lcd2 = a.getDateTo();
+            while(lcd1.isBefore(lcd2)){
+                Appointment pom = a.copy();
+                pom.setDateFrom(lcd1);
+                pom.setDateTo(lcd1.toLocalDate().atTime(lcd2.toLocalTime()));
+                group.add(pom);
+                lcd1 = lcd1.plusDays(7);
+            }
+        }
+        return group;
     }
 
     @Override
-    public void importDataJSON(String filePath) {
+    public void importDataJSON(String filePath) throws IOException {
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .create();
 
+        List<Appointment> appointments;
+        try (FileReader fr = new FileReader(filePath)) {
+            appointments = gson.fromJson(fr, new TypeToken<List<Appointment>>(){}.getType());
+        }
+
+        appointments.sort(Appointment::compareTo);
+
+
+        getAppointments().addAll(degroup(appointments));
+        System.out.println(getAppointments());
     }
 
     private boolean checkSameAppointments(Appointment a, Appointment b){
-        return a.getRoom() == b.getRoom() && a.getDateFrom().toLocalTime().equals(b.getDateFrom().toLocalTime())
+        return a.getRoom().equals(b.getRoom()) && a.getDateFrom().toLocalTime().equals(b.getDateFrom().toLocalTime())
                 && a.getDateTo().toLocalTime().equals(b.getDateTo().toLocalTime()) &&
                 a.getRelatedData().equals(b.getRelatedData()) && a.getDay().equals(b.getDay()) &&
                 (Duration.between(a.getDateTo(), b.getDateFrom()).toDays() <= 7 && Duration.between(a.getDateTo(), b.getDateFrom()).toDays() > 0);
