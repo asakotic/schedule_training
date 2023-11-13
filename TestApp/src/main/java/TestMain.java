@@ -1,11 +1,13 @@
 import org.schedule.management.implementationtwo.ScheduleImpl;
 import org.schedule.management.specification.models.Appointment;
+import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.sql.SQLOutput;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class TestMain {
     public static void main(String[] args) throws IOException {
@@ -63,18 +65,175 @@ public class TestMain {
                             ss.exportDataPDF("1.pdf", appointmentList); //2. impl 1. impl
                             break;
                         case "4":
-                            ss.exportDataConsole(appointmentList);
+                            ss.exportDataConsole(ss.getAppointments());
                             break;
                     }
+
+                    break;
+                case "3":
+                    System.out.print("Please enter room name: ");
+                    String roomName = reader.nextLine();
+                    System.out.print("Please enter room capacity: ");
+                    int capacity = reader.nextInt();
+                    Map<String, Integer> equipment = new HashMap<>();
+
+                    System.out.print("Please enter new equipment name, or type exit for end: ");
+                    reader.nextLine();
+                    String equipmentName = reader.nextLine();
+
+                    while(!equipmentName.equalsIgnoreCase("exit")){
+                        System.out.print("Please enter equipment amount: ");
+                        int equipmentAmount = reader.nextInt();
+
+                        if(equipment.containsKey(equipmentName)){
+                            System.out.print("You already entered that equipment! Do you want to change amount? Current amount is " + equipment.get(equipmentName) + ". ");
+                            reader.nextLine();
+                            String info = reader.nextLine();
+                            if(info.equalsIgnoreCase("Yes")){
+                                System.out.print("Enter new amount: ");
+                                int a = reader.nextInt();
+                                equipment.put(equipmentName, a);
+                            }
+                        }else{
+                            equipment.put(equipmentName, equipmentAmount);
+                        }
+                        System.out.print("Please enter new equipment name, or type exit for end: ");
+                        reader.nextLine();
+                        equipmentName = reader.nextLine();
+                    }
+
+                    if(!ss.addRoom(roomName, String.valueOf(capacity), equipment)) System.out.println("This room already exists!");
+                    else System.out.println("You added new room!");
+                    break;
+                case "4":
+                    System.out.println("Please select room from list below. Only write room name!");
+                    for(Room r : ss.getMetaData().getRooms()){
+                        System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
+                    }
+                    System.out.print("Enter room: ");
+                    String room = reader.nextLine();
+
+                    Room send = null;
+
+                    for(Room r : ss.getMetaData().getRooms()){
+                        if(r.getName().equalsIgnoreCase(room)) {
+                            send = r;
+                            break;
+                        }
+                    }
+                    if(send == null){
+                        System.out.println("You did not enter valid room!");
+                        break;
+                    }
+                    System.out.print("Enter date from (YYYY-MM-DDTHH:MM): ");
+                    String d1 = reader.nextLine();
+
+                    LocalDateTime localDateTimeFrom = LocalDateTime.parse(d1);
+
+                    System.out.print("Enter date to (YYYY-MM-DDTHH:MM): ");
+                    String d2 = reader.nextLine();
+
+                    LocalDateTime localDateTimeTo = LocalDateTime.parse(d2);
+
+                    if(!localDateTimeFrom.toLocalDate().equals(localDateTimeTo.toLocalDate())){
+                        System.out.println("You can only add one appointment at same date!");
+                        break;
+                    }
+
+                    Map<String,String> related = new HashMap<>();
+
+                    for(String relatedData: ss.getListRelatedData()){
+                        System.out.print("Do you want to add " + relatedData+"? ");
+                        String answer = reader.nextLine();
+                        if(answer.equalsIgnoreCase("Yes")){
+                            System.out.print("Type value for " + relatedData +": ");
+                            answer = reader.nextLine();
+                            related.put(relatedData, answer);
+                        }
+                    }
+
+                    if(ss.addAppointment(new Appointment(localDateTimeFrom.getDayOfWeek(),
+                            send, related, localDateTimeFrom, localDateTimeTo)))
+                        System.out.println("You added new appointment!");
+                    else System.out.println("This appointment already exists!");
+                    break;
+                case "5":
+
+                    System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
+                    for(Appointment a : ss.getAppointments()){ //TODO: add filters
+                        System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
+                        + " / " + a.getRelatedData() + " / " + a.getDateFrom() + " / " + a.getDateTo());
+                    }
+                    System.out.print("Choose appointment ID: ");
+                    String input = reader.nextLine();
+
+                    Appointment old = ss.getAppointments().get(Integer.parseInt(input));
+                    Appointment pom = old.copy();
+
+                    System.out.print("Do you want to change room? ");
+                    input = reader.nextLine();
+
+
+                    if(input.equalsIgnoreCase("Yes")){
+                        System.out.println("Please select room from list below. Only write room name!");
+                        for(Room r : ss.getMetaData().getRooms()){
+                            System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
+                        }
+                        System.out.print("Enter room: ");
+                        input = reader.nextLine();
+
+                        send = null;
+                        for(Room r : ss.getMetaData().getRooms()){
+                            if(r.getName().equalsIgnoreCase(input)) {
+                                send = r;
+                                break;
+                            }
+                        }
+                        if(send == null){
+                            System.out.println("You did not enter valid room!");
+                            break;
+                        }
+
+                        pom.setRoom(send);
+                    }
+
+                    System.out.print("Enter date from (YYYY-MM-DDTHH:MM): ");
+                    input = reader.nextLine();
+
+                    LocalDateTime localFrom = LocalDateTime.parse(input);
+
+                    System.out.print("Enter date to (YYYY-MM-DDTHH:MM): ");
+                    input = reader.nextLine();
+
+                    LocalDateTime localTo = LocalDateTime.parse(input);
+
+                    pom.setDay(localFrom.getDayOfWeek());
+                    pom.setDateFrom(localFrom);
+                    pom.setDateTo(localTo);
+
+                    if(ss.rescheduleAppointment(pom, old)){
+                        System.out.println("You rescheduled appointment!");
+                        System.out.println(ss.getAppointments());
+                    }else{
+                        System.out.println("That appointment is already taken :(");
+                    }
+
+                    break;
+                case "6":
+                    System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
+                    for(Appointment a : ss.getAppointments()){ //TODO: add filters
+                        System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
+                                + " / " + a.getRelatedData() + " / " + a.getDateFrom() + " / " + a.getDateTo());
+                    }
+                    System.out.print("Choose appointment ID: ");
+                    input = reader.nextLine();
+
+                    ss.getAppointments().remove(ss.getAppointments().get(Integer.parseInt(input)));
 
                     break;
                 case "7":
                     return;
             }
-
-            break;
-
-
         }
     }
     public static void printCommands(){

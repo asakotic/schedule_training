@@ -58,7 +58,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                         ap.setDay(startDateTime.getDayOfWeek());
                     }
                     case "endDate" -> endDateTime = LocalDateTime.parse(i.get(index), formatter);
-                    case "relatedData" -> ap.getRelatedData().put(userLbl, i.get(index));
+                    case "relatedData" -> {ap.getRelatedData().put(userLbl, i.get(index)); getListRelatedData().add(userLbl);}
                 }
             }
             if(startDateTime == null || endDateTime == null || ap.getDay() == null) return;// TODO baci eksepsn

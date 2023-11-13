@@ -16,9 +16,7 @@ import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
 import java.io.*;
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -54,7 +52,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                     }
                     case "startDate" -> startDateTime = LocalDateTime.parse(i.get(index), formatter);
                     case "endDate" -> endDateTime = LocalDateTime.parse(i.get(index), formatter);
-                    case "relatedData" -> ap.getRelatedData().put(userLbl, i.get(index));
+                    case "relatedData" -> {ap.getRelatedData().put(userLbl, i.get(index)); getListRelatedData().add(userLbl);}
                     case "day" -> ap.setDay(DayOfWeek.valueOf(i.get(index)));
                 }
             }
@@ -92,8 +90,10 @@ public class ScheduleImpl extends ScheduleSpecification {
     }
 
     private boolean checkSameAppointments(Appointment a, Appointment b){
-        return a.getRoom() == b.getRoom() && a.getDateFrom().toLocalTime() == b.getDateFrom().toLocalTime()
-                && a.getDateTo().toLocalTime() == b.getDateTo().toLocalTime();
+        return a.getRoom() == b.getRoom() && a.getDateFrom().toLocalTime().equals(b.getDateFrom().toLocalTime())
+                && a.getDateTo().toLocalTime().equals(b.getDateTo().toLocalTime()) &&
+                a.getRelatedData().equals(b.getRelatedData()) && a.getDay().equals(b.getDay()) &&
+                (Duration.between(a.getDateTo(), b.getDateFrom()).toDays() <= 7 && Duration.between(a.getDateTo(), b.getDateFrom()).toDays() > 0);
     }
 
     private void checkGroup(List<Appointment> group, Appointment a){
@@ -103,12 +103,12 @@ public class ScheduleImpl extends ScheduleSpecification {
               return;
             }
         }
-        group.add(a);
+        group.add(a.copy());
     }
 
     private List<Appointment> createGroup(List<Appointment> appointments){
         List<Appointment> group = new ArrayList<>();
-        for (Appointment a : appointments) checkGroup(group, a);
+        for (Appointment a : appointments) checkGroup(group, a.copy());
         return group;
     }
 

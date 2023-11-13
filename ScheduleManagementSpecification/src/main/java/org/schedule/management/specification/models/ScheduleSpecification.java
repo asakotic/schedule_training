@@ -26,6 +26,7 @@ public abstract class ScheduleSpecification {
     private MetaData metaData;
     private List<Appointment> appointments = new ArrayList<>();
     private List<String> headers;
+    private Set<String> listRelatedData = new HashSet<>();
 
     public abstract void importDataCSV(String file, String config) throws IOException;
     public abstract void importDataJSON(String filePath) throws IOException; // uzme sobe, uzme praznike, meta podaci
@@ -199,12 +200,13 @@ public abstract class ScheduleSpecification {
 
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment) {
         Room r = new Room(roomName, capacity, equipment);
-        if (!metaData.getRooms().contains(r)) {
-            metaData.getRooms().add(r);
-            return true;
+        for(Room room : metaData.getRooms()){
+            if(room.getName().equalsIgnoreCase(r.getName()))
+                return false;
         }
-        //TODO: Exception
-        return false;
+
+        metaData.getRooms().add(r);
+        return true;
     }
 
     public boolean addAppointment(Appointment appointment) {
@@ -214,11 +216,12 @@ public abstract class ScheduleSpecification {
         for (Appointment a : this.getAppointments()) {
             if (!a.getRoom().getName().equals(appointment.getRoom().getName())) continue;
             LocalDateTime aStart = a.getDateFrom();
-            LocalDateTime aEnd = a.getDateFrom();
-            if (start.isAfter(aStart) && start.isBefore(aEnd) ||
-                    end.isBefore(aEnd) && end.isAfter(aStart) ||
-                    start.isBefore(aStart) && end.isAfter(aEnd) ||
-                    start.isAfter(aStart) && end.isBefore(aEnd)) {
+            LocalDateTime aEnd = a.getDateTo();
+            if ((!start.isBefore(aStart) && !start.isAfter(aEnd)) ||
+                (!end.isAfter(aEnd) && !end.isBefore(aStart)) ||
+                (start.isBefore(aStart) && end.isAfter(aEnd)) ||
+                (start.isAfter(aStart) && end.isBefore(aEnd))) {
+                System.out.println(appointment + " " + a);
                 return false;
             }
         }
@@ -226,25 +229,9 @@ public abstract class ScheduleSpecification {
         return true;
     }
 
-    public boolean deleteAppointment(LocalDateTime from, LocalDateTime to, String roomName) {
-        boolean flag = false;
-        Appointment removeA = null;
-        for (Appointment a : this.appointments) {
-            if (a.getDateFrom().equals(from) &&
-                    a.getDateTo().equals(to) &&
-                    a.getRoom().getName().equals(roomName)) {
-                flag = true;
-                removeA = a;
-                break;
-            }
-        }
-        if (flag) appointments.remove(removeA);
-        return flag;
-    }
-
-    public boolean rescheduleAppointment(LocalDateTime from, LocalDateTime to, String room, Appointment appointment) {
-        return deleteAppointment(from, to, room)
-                && addAppointment(appointment);
+    public boolean rescheduleAppointment(Appointment appointment, Appointment old) {
+        return addAppointment(appointment)
+                && getAppointments().remove(old);
     }
 
     protected List<ConfigMapping> importConfig(String configPath) {
