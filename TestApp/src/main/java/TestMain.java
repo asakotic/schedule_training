@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class TestMain {
-    public static void main(String[] args) throws IOException, SameRoomNameException {
+    public static void main(String[] args) throws IOException {
         ScheduleSpecification ss = new ScheduleImpl();
 
         String configPath = "";
@@ -338,8 +338,12 @@ public class TestMain {
                         equipmentName = reader.nextLine();
                     }
 
-                    if(!ss.addRoom(roomName, String.valueOf(capacity), equipment)) System.out.println("This room already exists!");
-                    else System.out.println("You added new room!");
+                    try {
+                        if(!ss.addRoom(roomName, String.valueOf(capacity), equipment)) System.out.println("This room already exists!");
+                        else System.out.println("You added new room!");
+                    } catch (SameRoomNameException e) {
+                        throw new RuntimeException(e);
+                    }
                     break;
                 case "5":
                     System.out.println("Please select room from list below. Only write room name!");
