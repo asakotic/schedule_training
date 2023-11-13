@@ -8,10 +8,7 @@ import lombok.Setter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
-import org.schedule.management.specification.exceptions.CSVDateNullException;
-import org.schedule.management.specification.exceptions.InvalidDateFormatException;
-import org.schedule.management.specification.exceptions.InvalidIndexException;
-import org.schedule.management.specification.exceptions.NotWorkingTimeException;
+import org.schedule.management.specification.exceptions.*;
 
 import java.io.*;
 import java.sql.Time;
@@ -200,10 +197,11 @@ public abstract class ScheduleSpecification {
         metaData = MetaData.importMeta(metaDataPath);
     }
 
-    public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment) {
+    public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment) throws SameRoomNameException {
         Room r = new Room(roomName, capacity, equipment);
         for(Room room : metaData.getRooms()){
             if(room.getName().equalsIgnoreCase(r.getName()))
+                throw new SameRoomNameException();
                 return false;
         }
 

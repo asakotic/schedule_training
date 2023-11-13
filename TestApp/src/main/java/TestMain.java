@@ -1,8 +1,5 @@
 import org.schedule.management.implementationtwo.ScheduleImpl;
-import org.schedule.management.specification.exceptions.CSVDateNullException;
-import org.schedule.management.specification.exceptions.InvalidDateFormatException;
-import org.schedule.management.specification.exceptions.InvalidIndexException;
-import org.schedule.management.specification.exceptions.NotWorkingTimeException;
+import org.schedule.management.specification.exceptions.*;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
@@ -14,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class TestMain {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SameRoomNameException {
         ScheduleSpecification ss = new ScheduleImpl();
 
         String configPath = "";
