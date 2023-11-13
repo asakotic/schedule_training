@@ -114,9 +114,11 @@ public abstract class ScheduleSpecification {
 
         ListIterator<Appointment> i = appointments.listIterator();
 
+
         while(i.hasNext()){
             Appointment a = i.next();
             boolean check = false;
+
             for (Appointment f : filter) {
                 if (f.getDateFrom().isAfter(a.getDateFrom()) && f.getDateTo().isBefore(a.getDateTo())) { //ovo je kada se termin profesora nalazi u intervalu dva datuma
                     Appointment pom = new Appointment(a.getRoom(), f.getDateTo(), a.getDateTo());
@@ -126,12 +128,12 @@ public abstract class ScheduleSpecification {
                     check = true;
                     break;
                 }
-                if(f.getDateTo().isBefore(a.getDateTo()) && f.getDateFrom().isAfter(a.getDateFrom())){
+                if(!f.getDateTo().isBefore(a.getDateTo()) && !f.getDateFrom().isAfter(a.getDateFrom())){ // ako uzima ceo interval onda brisemo taj intervalo
                     i.remove();
                     break;
                 }
                 if(f.getDateFrom().isAfter(a.getDateFrom()) && f.getDateTo().isAfter(a.getDateTo())
-                        && !f.getDateFrom().isBefore(a.getDateTo())){
+                        && !f.getDateFrom().isAfter(a.getDateTo())){
                     a.setDateTo(f.getDateFrom());
                     i.set(a);
                     break;
@@ -167,14 +169,12 @@ public abstract class ScheduleSpecification {
                     LocalDateTime ldt = LocalDateTime.of(startDateTime, tmp);
                     Appointment bla = new Appointment(a, ldt, appointment.getDateFrom());
                     group.add(bla);
-                    System.out.println("ispis1" + bla);
                     startDateTime = appointment.getDateTo().toLocalDate();
                 } else if (startDateTime.equals(appointment.getDateFrom().toLocalDate()) &&
                         tmp.isBefore(appointment.getDateFrom().toLocalTime())) {
                     LocalDateTime ldt = LocalDateTime.of(startDateTime, tmp);
                     Appointment bla = new Appointment(a, ldt, appointment.getDateFrom());
                     group.add(bla);
-                    System.out.println("ispis2" + bla);
                 }
                 tmp = appointment.getDateTo().toLocalTime();
                 if (!tmp.isBefore(endWorkingHours)){
@@ -194,7 +194,6 @@ public abstract class ScheduleSpecification {
 
     public void importMeta(String metaDataPath) {
         metaData = MetaData.importMeta(metaDataPath);
-        System.out.println(metaData);
     }
 
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment) {
@@ -220,7 +219,6 @@ public abstract class ScheduleSpecification {
                 (!end.isAfter(aEnd) && !end.isBefore(aStart)) ||
                 (start.isBefore(aStart) && end.isAfter(aEnd)) ||
                 (start.isAfter(aStart) && end.isBefore(aEnd))) {
-                System.out.println(appointment + " " + a);
                 return false;
             }
         }
