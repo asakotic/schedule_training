@@ -1,4 +1,8 @@
 import org.schedule.management.implementationtwo.ScheduleImpl;
+import org.schedule.management.specification.exceptions.CSVDateNullException;
+import org.schedule.management.specification.exceptions.InvalidDateFormatException;
+import org.schedule.management.specification.exceptions.InvalidIndexException;
+import org.schedule.management.specification.exceptions.NotWorkingTimeException;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
@@ -31,7 +35,11 @@ public class TestMain {
             configPath = reader.nextLine();
             System.out.println("Please enter path of your CSV file: ");
             filePath = reader.nextLine();
-            ss.importDataCSV(filePath, configPath);
+            try {
+                ss.importDataCSV(filePath, configPath);
+            } catch (InvalidIndexException | CSVDateNullException | InvalidDateFormatException | NotWorkingTimeException e) {
+                throw new RuntimeException(e);
+            }
         }else{
             System.out.println("You picked JSON, please enter path of your JSON file: ");
             reader.nextLine();
@@ -56,7 +64,13 @@ public class TestMain {
 
                     switch (command) {
                         case "1" -> ss.exportDataJSON("1.json", appointmentList); // 2. impl 1. impl
-                        case "2" -> ss.exportDataCSV("1.csv", configPath, appointmentList); //2. impl 1. impl
+                        case "2" -> {
+                            try {
+                                ss.exportDataCSV("1.csv", configPath, appointmentList);
+                            } catch (InvalidIndexException e) {
+                                throw new RuntimeException(e);
+                            }
+                        } //2. impl 1. impl
                         case "3" -> ss.exportDataPDF("1.pdf", appointmentList); //2. impl 1. impl
                         case "4" -> ss.exportDataConsole(appointmentList);
                         case "5" -> ss.exportDataConsole(ss.getAppointments());
@@ -385,7 +399,7 @@ public class TestMain {
                 case "6":
 
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
-                    for(Appointment a : ss.getAppointments()){ //TODO: add filters
+                    for(Appointment a : ss.getAppointments()){
                         System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
                         + " / " + a.getRelatedData() + " / " + a.getDateFrom() + " / " + a.getDateTo());
                     }
@@ -446,7 +460,7 @@ public class TestMain {
                     break;
                 case "7":
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
-                    for(Appointment a : ss.getAppointments()){ //TODO: add filters
+                    for(Appointment a : ss.getAppointments()){
                         System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
                                 + " / " + a.getRelatedData() + " / " + a.getDateFrom() + " / " + a.getDateTo());
                     }

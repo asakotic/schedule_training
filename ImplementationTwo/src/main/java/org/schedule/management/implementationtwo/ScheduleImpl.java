@@ -11,6 +11,10 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
+import org.schedule.management.specification.exceptions.CSVDateNullException;
+import org.schedule.management.specification.exceptions.InvalidDateFormatException;
+import org.schedule.management.specification.exceptions.InvalidIndexException;
+import org.schedule.management.specification.exceptions.NotWorkingTimeException;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
@@ -27,7 +31,7 @@ import java.util.concurrent.RecursiveTask;
 
 public class ScheduleImpl extends ScheduleSpecification {
     @Override
-    public void importDataCSV(String filePath, String configPath) throws IOException {
+    public void importDataCSV(String filePath, String configPath) throws IOException, InvalidIndexException, CSVDateNullException, NotWorkingTimeException {
         List<ConfigMapping> configMap = importConfig(configPath);
         FileReader fr = new FileReader(filePath);
         CSVParser csvParser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build().parse(fr);
@@ -59,7 +63,15 @@ public class ScheduleImpl extends ScheduleSpecification {
                     case "day" -> ap.setDay(DayOfWeek.valueOf(i.get(index)));
                 }
             }
-            if(startDateTime == null || endDateTime == null || ap.getDay() ==null) return;// TODO baci eksepsn
+            if(startDateTime == null || endDateTime == null || ap.getDay() ==null) throw new CSVDateNullException();
+
+            LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getOpeningTime();
+            LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getClosingTime();
+
+            if(startDateTime.toLocalTime().isBefore(startWorkingtime) ||
+                    endDateTime.toLocalTime().isAfter(endWorkingTime)) {
+                throw new NotWorkingTimeException();
+            }
 
             if(!ap.getDay().equals(startDateTime.getDayOfWeek())){
                 if(ap.getDay().getValue() > startDateTime.getDayOfWeek().getValue()){
@@ -191,7 +203,7 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
 
-    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) {
+    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) throws InvalidIndexException, FileNotFoundException {
 
         List<ConfigMapping> configMap = importConfig(configPath);
         configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));

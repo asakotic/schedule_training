@@ -13,6 +13,10 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
+import org.schedule.management.specification.exceptions.CSVDateNullException;
+import org.schedule.management.specification.exceptions.InvalidDateFormatException;
+import org.schedule.management.specification.exceptions.InvalidIndexException;
+import org.schedule.management.specification.exceptions.NotWorkingTimeException;
 import org.schedule.management.specification.models.Appointment;
 import org.schedule.management.specification.models.ConfigMapping;
 import org.schedule.management.specification.models.Room;
@@ -27,7 +31,7 @@ import java.util.*;
 public class ScheduleImpl extends ScheduleSpecification {
 
     @Override
-    public void importDataCSV(String filepath,String configpath) throws IOException {
+    public void importDataCSV(String filepath,String configpath) throws IOException, InvalidIndexException, CSVDateNullException, InvalidDateFormatException, NotWorkingTimeException {
         List<ConfigMapping> configMap = importConfig(configpath);
         FileReader fr = new FileReader(filepath);
         CSVParser csvParser = CSVFormat.DEFAULT.builder().setHeader().setSkipHeaderRecord(true).build().parse(fr);
@@ -61,7 +65,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                     case "relatedData" -> {ap.getRelatedData().put(userLbl, i.get(index)); getListRelatedData().add(userLbl);}
                 }
             }
-            if(startDateTime == null || endDateTime == null || ap.getDay() == null) return;// TODO baci eksepsn
+            if(startDateTime == null || endDateTime == null || ap.getDay() == null) throw new CSVDateNullException();
             LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getOpeningTime();
             LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDateTime.getDayOfWeek()).getClosingTime();
 
@@ -70,7 +74,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                 ap.setDateTo(endDateTime);
                 if(startDateTime.toLocalTime().isBefore(startWorkingtime) ||
                         endDateTime.toLocalTime().isAfter(endWorkingTime)) {
-                    //TODO baci eksepsn
+                    throw new NotWorkingTimeException();
                 }
                 this.addAppointment(ap);
             }else{
@@ -184,7 +188,7 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
     }
 
-    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) {
+    public void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) throws InvalidIndexException, FileNotFoundException {
 
         List<ConfigMapping> configMap = importConfig(configPath);
         configMap.sort(Comparator.comparingInt(ConfigMapping::getIndex));

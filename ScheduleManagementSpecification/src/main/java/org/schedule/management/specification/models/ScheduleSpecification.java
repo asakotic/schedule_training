@@ -8,6 +8,10 @@ import lombok.Setter;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.schedule.management.specification.adapters.LocalDateTimeAdapter;
+import org.schedule.management.specification.exceptions.CSVDateNullException;
+import org.schedule.management.specification.exceptions.InvalidDateFormatException;
+import org.schedule.management.specification.exceptions.InvalidIndexException;
+import org.schedule.management.specification.exceptions.NotWorkingTimeException;
 
 import java.io.*;
 import java.sql.Time;
@@ -28,11 +32,11 @@ public abstract class ScheduleSpecification {
     private List<String> headers;
     private Set<String> listRelatedData = new HashSet<>();
 
-    public abstract void importDataCSV(String file, String config) throws IOException;
+    public abstract void importDataCSV(String file, String config) throws IOException, InvalidIndexException, CSVDateNullException, InvalidDateFormatException, NotWorkingTimeException;
     public abstract void importDataJSON(String filePath) throws IOException; // uzme sobe, uzme praznike, meta podaci
     public abstract void exportDataPDF(String fileName, List<Appointment> appointments);
     public abstract  void exportDataJSON(String fileName, List<Appointment> appointments);
-    public abstract void exportDataCSV(String fileName, String configPath, List<Appointment> appointments);
+    public abstract void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) throws InvalidIndexException, FileNotFoundException;
     public abstract void exportDataConsole(List<Appointment> appointments);
 
     //da ima racunar, da ima vise od 10 racunara, da nema racunar
@@ -236,7 +240,7 @@ public abstract class ScheduleSpecification {
         return false;
     }
 
-    protected List<ConfigMapping> importConfig(String configPath) {
+    protected List<ConfigMapping> importConfig(String configPath) throws FileNotFoundException, InvalidIndexException {
         List<ConfigMapping> map = new ArrayList<>();
         int br = 0;
         File file;
@@ -249,12 +253,10 @@ public abstract class ScheduleSpecification {
                 String[] split = line.split(" ", 3);
                 ConfigMapping cm = new ConfigMapping(Integer.parseInt(split[0]), split[1], split[2]);
                 map.add(cm);
-                if (br++ != cm.getIndex()) return null; //TODO BACI EKSEPSNNNNN
+                if (br++ != cm.getIndex()) throw new InvalidIndexException();
             }
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } finally {
+        }finally {
             if (sc != null) {
                 sc.close();
             }
