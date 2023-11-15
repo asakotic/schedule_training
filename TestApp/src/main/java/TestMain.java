@@ -1,6 +1,6 @@
-import org.schedule.management.implementationtwo.ScheduleImpl;
 import org.schedule.management.specification.exceptions.*;
 import org.schedule.management.specification.models.Appointment;
+import org.schedule.management.specification.models.Manager;
 import org.schedule.management.specification.models.Room;
 import org.schedule.management.specification.models.ScheduleSpecification;
 
@@ -12,7 +12,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 public class TestMain {
     public static void main(String[] args) throws IOException {
-        ScheduleSpecification ss = new ScheduleImpl();
+
+        try {
+            Class.forName("org.schedule.management.implementationone.ScheduleImpl");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        ScheduleSpecification ss = Manager.getScheduleSpecification();
 
         String configPath = "";
         String filePath = "";

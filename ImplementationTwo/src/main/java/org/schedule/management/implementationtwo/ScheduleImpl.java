@@ -15,10 +15,7 @@ import org.schedule.management.specification.exceptions.CSVDateNullException;
 import org.schedule.management.specification.exceptions.InvalidDateFormatException;
 import org.schedule.management.specification.exceptions.InvalidIndexException;
 import org.schedule.management.specification.exceptions.NotWorkingTimeException;
-import org.schedule.management.specification.models.Appointment;
-import org.schedule.management.specification.models.ConfigMapping;
-import org.schedule.management.specification.models.Room;
-import org.schedule.management.specification.models.ScheduleSpecification;
+import org.schedule.management.specification.models.*;
 
 import java.io.*;
 import java.time.*;
@@ -30,6 +27,11 @@ import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
 public class ScheduleImpl extends ScheduleSpecification {
+
+    static{
+        Manager.setScheduleSpecification(new ScheduleImpl());
+    }
+
     @Override
     public void importDataCSV(String filePath, String configPath) throws IOException, InvalidIndexException, CSVDateNullException, NotWorkingTimeException {
         List<ConfigMapping> configMap = importConfig(configPath);
