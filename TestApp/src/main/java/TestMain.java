@@ -14,7 +14,7 @@ public class TestMain {
     public static void main(String[] args) throws IOException, InvalidDateFormatException, NotWorkingTimeException {
 
         try {
-            Class.forName("org.schedule.management.implementationone.ScheduleImpl");
+            Class.forName("org.schedule.management.implementationtwo.ScheduleImpl");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }

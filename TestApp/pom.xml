@@ -18,7 +18,7 @@
         </dependency>
         <dependency>
             <groupId>org.schedule.management.specification</groupId>
-            <artifactId>ImplementationOne</artifactId>
+            <artifactId>ImplementationTwo</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>

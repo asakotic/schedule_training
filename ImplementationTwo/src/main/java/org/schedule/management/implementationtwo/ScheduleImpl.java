@@ -250,7 +250,13 @@ public class ScheduleImpl extends ScheduleSpecification {
 
     @Override
     public boolean addAppointments(Room room, LocalDateTime dateFrom, LocalDateTime dateTo, Map<String, String> relatedData) {
-        return false;
+        Appointment b = new Appointment(dateFrom.getDayOfWeek(), room, relatedData, dateFrom, dateTo);
+        List<Appointment> appointments = this.degroup(List.of(b));
+
+        for(Appointment a : appointments)
+            if(!addAppointment(a)) return false;
+
+        return true;
     }
 
 }
