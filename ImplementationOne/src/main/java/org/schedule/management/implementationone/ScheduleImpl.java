@@ -85,7 +85,7 @@ public class ScheduleImpl extends ScheduleSpecification {
                 this.addAppointment(ap);
 
                 Appointment a = ap.copy();
-                makeMore(ap,startDateTime.plusDays(1),endDateTime.minusDays(1));
+                makeMore(a,startDateTime.plusDays(1),endDateTime.minusDays(1));
 
                 Appointment b = ap.copy();
                 startWorkingtime = this.getMetaData().getWorkingHours().get(endDateTime.getDayOfWeek()).getOpeningTime();
@@ -97,7 +97,7 @@ public class ScheduleImpl extends ScheduleSpecification {
         }
         this.getAppointments().sort(Appointment::compareTo);
     }
-    private void makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
+    private boolean makeMore(Appointment appointment,LocalDateTime startDate, LocalDateTime endDate){
         LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
         LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         while(!startDate.isAfter(endDate)){
@@ -105,11 +105,14 @@ public class ScheduleImpl extends ScheduleSpecification {
             a.setDateFrom(startDate.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
             a.setDateTo(startDate.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute()));
             a.setDay(startDate.getDayOfWeek());
-            addAppointment(appointment);
+            if(!addAppointment(a))
+                return false;
             startDate = startDate.plusDays(1);
             startWorkingtime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getOpeningTime();
             endWorkingTime = this.getMetaData().getWorkingHours().get(startDate.getDayOfWeek()).getClosingTime();
         }
+
+        return true;
     }
     @Override
     public void exportDataPDF(String fileName, List<Appointment> appointments) {
@@ -232,5 +235,50 @@ public class ScheduleImpl extends ScheduleSpecification {
     @Override
     public void exportDataConsole(List<Appointment> appointments) {
         System.out.println(appointments);
+    }
+
+    @Override
+    public boolean addAppointments(Room room, LocalDateTime dateFrom, LocalDateTime dateTo, Map<String, String> relatedData ) throws NotWorkingTimeException {
+
+        LocalTime startWorkingtime = this.getMetaData().getWorkingHours().get(dateFrom.getDayOfWeek()).getOpeningTime();
+        LocalTime endWorkingTime = this.getMetaData().getWorkingHours().get(dateFrom.getDayOfWeek()).getClosingTime();
+        Appointment ap = new Appointment();
+        ap.setDay(dateFrom.getDayOfWeek());
+        ap.setRoom(room);
+        ap.setRelatedData(relatedData);
+
+        if(dateFrom.toLocalDate().equals(dateTo.toLocalDate())){
+            ap.setDateFrom(dateFrom);
+            ap.setDateTo(dateTo);
+            if(dateFrom.toLocalTime().isBefore(startWorkingtime) ||
+                    dateTo.toLocalTime().isAfter(endWorkingTime)) {
+                throw new NotWorkingTimeException();
+            }
+            if(!this.addAppointment(ap))
+                return false;
+
+        }else{
+            ap.setDateFrom(dateFrom);
+            dateFrom = dateFrom.withHour(endWorkingTime.getHour()).withMinute(endWorkingTime.getMinute());
+            ap.setDateTo(dateFrom);
+            if(!this.addAppointment(ap))
+                return false;
+
+
+            Appointment a = ap.copy();
+            if(!makeMore(a,dateFrom.plusDays(1),dateTo.minusDays(1)))
+                return false;
+
+
+            Appointment b = ap.copy();
+            startWorkingtime = this.getMetaData().getWorkingHours().get(dateTo.getDayOfWeek()).getOpeningTime();
+            b.setDateFrom(dateTo.withHour(startWorkingtime.getHour()).withMinute(startWorkingtime.getMinute()));
+            b.setDateTo(dateTo);
+            b.setDay(dateTo.getDayOfWeek());
+            if(!this.addAppointment(b))
+                return false;
+        }
+
+        return true;
     }
 }

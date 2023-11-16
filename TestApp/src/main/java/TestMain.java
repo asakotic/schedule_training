@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class TestMain {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InvalidDateFormatException, NotWorkingTimeException {
 
         try {
             Class.forName("org.schedule.management.implementationone.ScheduleImpl");
@@ -404,6 +404,56 @@ public class TestMain {
                     else System.out.println("This appointment already exists!");
                     break;
                 case "6":
+                    System.out.println("Please select room from list below. Only write room name!");
+                    for(Room r : ss.getMetaData().getRooms()){
+                        System.out.println("Room name: " + r.getName() + ", capacity: " + r.getCapacity());
+                    }
+                    System.out.print("Enter room: ");
+                    room = reader.nextLine();
+
+                    send = null;
+
+                    for(Room r : ss.getMetaData().getRooms()){
+                        if(r.getName().equalsIgnoreCase(room)) {
+                            send = r;
+                            break;
+                        }
+                    }
+                    if(send == null){
+                        System.out.println("You did not enter valid room!");
+                        break;
+                    }
+                    System.out.print("Enter date from (YYYY-MM-DDTHH:MM): ");
+                    d1 = reader.nextLine();
+
+                    localDateTimeFrom = LocalDateTime.parse(d1);
+
+                    System.out.print("Enter date to (YYYY-MM-DDTHH:MM): ");
+                    d2 = reader.nextLine();
+
+                    localDateTimeTo = LocalDateTime.parse(d2);
+
+                    if(!localDateTimeFrom.isBefore(localDateTimeTo))
+                        throw new InvalidDateFormatException();
+
+                    related = new HashMap<>();
+
+                    for(String relatedData: ss.getListRelatedData()){
+                        System.out.print("Do you want to add " + relatedData+"? ");
+                        String answer = reader.nextLine();
+                        if(answer.equalsIgnoreCase("Yes")){
+                            System.out.print("Type value for " + relatedData +": ");
+                            answer = reader.nextLine();
+                            related.put(relatedData, answer);
+                        }
+                    }
+
+                    if(!ss.addAppointments(send, localDateTimeFrom, localDateTimeTo, related)){
+                        System.out.println("This appointments are not available!");
+                    }
+
+                    break;
+                case "7":
 
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
                     for(Appointment a : ss.getAppointments()){
@@ -465,7 +515,7 @@ public class TestMain {
                     }
 
                     break;
-                case "7":
+                case "8":
                     System.out.println("ID / RoomName / relatedData / dateFrom / DateTo");
                     for(Appointment a : ss.getAppointments()){
                         System.out.println(ss.getAppointments().indexOf(a) + " / " + a.getRoom().getName()
@@ -477,7 +527,7 @@ public class TestMain {
                     ss.getAppointments().remove(ss.getAppointments().get(Integer.parseInt(input)));
 
                     break;
-                case "8":
+                case "9":
                     return;
             }
         }
@@ -489,9 +539,10 @@ public class TestMain {
         System.out.println("3. Search (find available)");
         System.out.println("4. Add room");
         System.out.println("5. Add appointment");
-        System.out.println("6. Reschedule appointment");
-        System.out.println("7. Delete appointment");
-        System.out.println("8. Exit :(\n");
+        System.out.println("6. Add appointments");
+        System.out.println("7. Reschedule appointment");
+        System.out.println("8. Delete appointment");
+        System.out.println("9. Exit :(\n");
     }
 
 

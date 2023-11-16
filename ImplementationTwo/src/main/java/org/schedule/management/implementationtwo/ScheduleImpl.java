@@ -20,9 +20,7 @@ import org.schedule.management.specification.models.*;
 import java.io.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.RecursiveTask;
 
@@ -248,6 +246,11 @@ public class ScheduleImpl extends ScheduleSpecification {
     @Override
     public void exportDataConsole(List<Appointment> appointments) {
         System.out.println(createGroup(appointments));
+    }
+
+    @Override
+    public boolean addAppointments(Room room, LocalDateTime dateFrom, LocalDateTime dateTo, Map<String, String> relatedData) {
+        return false;
     }
 
 }

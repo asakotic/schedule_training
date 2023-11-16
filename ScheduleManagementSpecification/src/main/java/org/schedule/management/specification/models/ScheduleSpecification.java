@@ -79,12 +79,21 @@ public abstract class ScheduleSpecification {
     public abstract void exportDataConsole(List<Appointment> appointments);
 
     /**
+     * Adds list of appointments
+     * @param room Room for appointments
+     * @param dateFrom Date from
+     * @param dateTo Date to
+     * @return Return true if appointment is successfully added
+     */
+    public abstract boolean addAppointments(Room room, LocalDateTime dateFrom, LocalDateTime dateTo, Map<String, String> relatedData) throws NotWorkingTimeException;
+    /**
      * Filter list of appointments by equipment
      * @param appointments List of appointments which will be filtered
      * @param equipment Equipment name
      * @param quantity Equipment quantity
      * @return Returns new list of filtered appointments
      */
+
     public List<Appointment> filterEquipment(List<Appointment> appointments, String equipment, int quantity) {
         List<Appointment> group = new ArrayList<>();
 
