@@ -29,14 +29,62 @@ public abstract class ScheduleSpecification {
     private List<String> headers;
     private Set<String> listRelatedData = new HashSet<>();
 
+    /**
+     * Imports data from CSV file.
+     * @param file FilePath of CSV file
+     * @param config ConfigPath of config file for CSV
+     * @throws IOException File does not exist
+     * @throws InvalidIndexException Import config index does not exist
+     * @throws CSVDateNullException Date does not exist in CSV
+     * @throws InvalidDateFormatException Date has invalid date format in CSV
+     * @throws NotWorkingTimeException Date is not in working time
+     */
     public abstract void importDataCSV(String file, String config) throws IOException, InvalidIndexException, CSVDateNullException, InvalidDateFormatException, NotWorkingTimeException;
+
+    /**
+     * Imports data from JSON file.
+     * @param filePath FilePath for JSON file
+     * @throws IOException File does not exist
+     */
     public abstract void importDataJSON(String filePath) throws IOException; // uzme sobe, uzme praznike, meta podaci
+
+    /**
+     * Exports data to PDF file
+     * @param fileName File name for new PDF file
+     * @param appointments List of appointments which will be in new PDF file
+     */
     public abstract void exportDataPDF(String fileName, List<Appointment> appointments);
+
+    /**
+     * Exports data to JSON file
+     * @param fileName File name for new JSON file
+     * @param appointments List of appointments which will be in new JSON file
+     */
     public abstract  void exportDataJSON(String fileName, List<Appointment> appointments);
+
+    /**
+     * Exports data to CSV file
+     * @param fileName File name for new CSV file
+     * @param configPath Config path for new CSV file
+     * @param appointments List of appointments which will be in new CSV file
+     * @throws InvalidIndexException Import config index does not exist
+     * @throws FileNotFoundException Config file not found
+     */
     public abstract void exportDataCSV(String fileName, String configPath, List<Appointment> appointments) throws InvalidIndexException, FileNotFoundException;
+
+    /**
+     * Exports data to console
+     * @param appointments List of appointments which will be printed in console
+     */
     public abstract void exportDataConsole(List<Appointment> appointments);
 
-    //da ima racunar, da ima vise od 10 racunara, da nema racunar
+    /**
+     * Filter list of appointments by equipment
+     * @param appointments List of appointments which will be filtered
+     * @param equipment Equipment name
+     * @param quantity Equipment quantity
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> filterEquipment(List<Appointment> appointments, String equipment, int quantity) {
         List<Appointment> group = new ArrayList<>();
 
@@ -54,6 +102,13 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Filter list of appointments by related data
+     * @param appointments List of appointments which will be filtered
+     * @param relatedDataKey Related data key
+     * @param relatedDataValue Related data value
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> filterRelatedData(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
         List<Appointment> group = new ArrayList<>();
 
@@ -66,6 +121,13 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Filter list of appointments by date
+     * @param appointments List of appointments which will be filtered
+     * @param dateFrom Date from
+     * @param dateTo Date to
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> filterDate(List<Appointment> appointments, LocalDate dateFrom, LocalDate dateTo) {
         List<Appointment> group = new ArrayList<>();
 
@@ -77,6 +139,13 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Filter list of appointments by room capacity
+     * @param appointments List of appointments which will be filtered
+     * @param greater If greater is true check if appointment room capacity is greater than capacity param
+     * @param capacity Capacity param
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> filterCapacity(List<Appointment> appointments, boolean greater, int capacity) {
         List<Appointment> group = new ArrayList<>();
 
@@ -90,6 +159,12 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Filter list of appointments by room
+     * @param appointments List of appointments which will be filtered
+     * @param rooms Room as parameter for filter
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> filterByRoom(List<Appointment> appointments, Collection<Room> rooms) {
         List<Appointment> group = new ArrayList<>();
 
@@ -101,14 +176,29 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Get reserved filtered data
+     * @return Returns filtered data
+     */
     public List<Appointment> filterByReservedAppointments() {
         return appointments;
     }
 
+    /**
+     * Reset applied filters
+     * @return Returns original list
+     */
     public List<Appointment> resetFilter() {
         return appointments;
     }
 
+    /**
+     * Filter list by related data for available appointments
+     * @param appointments List of appointments which will be filtered
+     * @param relatedDataKey Related data key
+     * @param relatedDataValue Related data value
+     * @return Returns new list of filtered appointments
+     */
     public List<Appointment> checkRelatedDataAvailable(List<Appointment> appointments, String relatedDataKey, String relatedDataValue) {
 
         List<Appointment> filter = filterRelatedData(this.getAppointments(), relatedDataKey, relatedDataValue); // sve gde je neko zauzet
@@ -151,6 +241,10 @@ public abstract class ScheduleSpecification {
         return appointments;
     }
 
+    /**
+     * Get available appointments
+     * @return Returns all available appointments
+     */
     public List<Appointment> searchByAvailableAppointments() {
         List<Appointment> group = new ArrayList<>();
         List<Room> rooms = metaData.getRooms();
@@ -193,10 +287,22 @@ public abstract class ScheduleSpecification {
         return group;
     }
 
+    /**
+     * Imports meta data
+     * @param metaDataPath Meta data path
+     */
     public void importMeta(String metaDataPath) {
         metaData = MetaData.importMeta(metaDataPath);
     }
 
+    /**
+     * Add new room
+     * @param roomName Room name
+     * @param capacity Room capacity
+     * @param equipment Room equipment
+     * @return Returns true if room is added successfully
+     * @throws SameRoomNameException Return exception if that rooms exists
+     */
     public boolean addRoom(String roomName, String capacity, Map<String, Integer> equipment) throws SameRoomNameException {
         Room r = new Room(roomName, capacity, equipment);
         for(Room room : metaData.getRooms()){
@@ -208,6 +314,12 @@ public abstract class ScheduleSpecification {
         metaData.getRooms().add(r);
         return true;
     }
+
+    /**
+     * Adds new appointment
+     * @param appointment New appointment
+     * @return Returns true if adding new appointment is possible
+     */
 
     public boolean addAppointment(Appointment appointment) {
         LocalDateTime start = appointment.getDateFrom();
@@ -228,6 +340,12 @@ public abstract class ScheduleSpecification {
         return true;
     }
 
+    /**
+     * Reschedules appointment
+     * @param appointment New appointment
+     * @param old Old appointment
+     * @return Returns true if rescheduling is possible
+     */
     public boolean rescheduleAppointment(Appointment appointment, Appointment old) {
         getAppointments().remove(old);
 
@@ -238,6 +356,13 @@ public abstract class ScheduleSpecification {
         return false;
     }
 
+    /**
+     * Imports config
+     * @param configPath Path to config
+     * @return Returns ConfigMap
+     * @throws FileNotFoundException Throws error if file not found
+     * @throws InvalidIndexException Throws error if index is invalid
+     */
     protected List<ConfigMapping> importConfig(String configPath) throws FileNotFoundException, InvalidIndexException {
         List<ConfigMapping> map = new ArrayList<>();
         int br = 0;

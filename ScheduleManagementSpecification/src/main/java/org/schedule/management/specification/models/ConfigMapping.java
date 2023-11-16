@@ -10,6 +10,12 @@ public class ConfigMapping {
     private String userLabel;
     private String primaryLabel;
 
+    /**
+     * Creates instance of ConfigMapping
+     * @param index Column index in CSV
+     * @param userLabel User column name
+     * @param primaryLabel App column name
+     */
     public ConfigMapping(int index, String userLabel, String primaryLabel) {
         this.index = index;
         this.userLabel = userLabel;

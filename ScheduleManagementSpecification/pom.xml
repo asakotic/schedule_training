@@ -43,7 +43,7 @@
                 <configuration>
                     <show>public</show>
                     <nohelp>true</nohelp>
-                    <excludePackageNames>org.schedule.management.specification.adapters</excludePackageNames>
+                    <excludePackageNames>org.schedule.management.specification.adapters, org.schedule.management.specification.exceptions</excludePackageNames>
                 </configuration>
             </plugin>
         </plugins>

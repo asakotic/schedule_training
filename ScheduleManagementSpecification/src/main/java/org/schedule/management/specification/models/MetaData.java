@@ -36,6 +36,11 @@ public class MetaData {
             .registerTypeAdapter(LocalTime.class,new TimeAdapter())
             .create();
 
+    /**
+     * Returns new MetaData
+     * @param metaDataPath MetaData file path
+     * @return Returns new MetaData
+     */
     public static MetaData importMeta(String metaDataPath){
         try (Reader reader = new FileReader(metaDataPath)) {
             MetaData staff = gson.fromJson(reader, MetaData.class);

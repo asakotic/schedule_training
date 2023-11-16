@@ -16,21 +16,23 @@ public class Room {
     @Setter(AccessLevel.PRIVATE)
     private Map<String, Integer> equipment;
 
+    /**
+     * Creates new instance of Room
+     * @param roomName Room name
+     * @param capacity Room capacity
+     * @param equipment Room equipment
+     */
     public Room(String roomName, String capacity, Map<String, Integer> equipment) {
         this.name = roomName;
         this.capacity = capacity;
         this.equipment = equipment;
     }
 
-    public Room() {
-    }
-
-    public boolean addEquipment(String name, int quantity){
-        return false; //DODAJEMO U JSON EQUIPMENT NIZ {RACUNAR : 5} ODMAH JSON EDIT
-    }
-    public boolean removeEquipment(String name){
-        return false;
-    }
+    /**
+     * Compares two rooms
+     * @param o Compare with Room o
+     * @return Return true if Rooms have same name
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -38,6 +40,11 @@ public class Room {
         Room room = (Room) o;
         return Objects.equals(name, room.name);
     }
+
+    /**
+     * New string value of room
+     * @return Returns String value of room
+     */
     @Override
     public String toString() {
         return "Room{" +

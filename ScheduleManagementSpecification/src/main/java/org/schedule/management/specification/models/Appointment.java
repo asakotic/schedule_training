@@ -20,6 +20,14 @@ public class Appointment implements Comparable<Appointment>{
     private LocalDateTime dateFrom;
     private LocalDateTime dateTo;
 
+    /**
+     * Creates new instance of Appointment
+     * @param day First day of Appointment
+     * @param room Room of appointment
+     * @param relatedData Related data
+     * @param dateFrom Date and time when appointment starts
+     * @param dateTo Date and time when appointment ends
+     */
     public Appointment(DayOfWeek day, Room room, Map<String, String> relatedData, LocalDateTime dateFrom, LocalDateTime dateTo) {
         this.day = day;
         this.room = room;
@@ -28,6 +36,12 @@ public class Appointment implements Comparable<Appointment>{
         this.dateTo = dateTo;
     }
 
+    /**
+     * Creates new instance of Appointment
+     * @param room Room of appointment
+     * @param dateFrom Date and time when appointment starts
+     * @param dateTo Date and time when appointment ends
+     */
     public Appointment(Room room, LocalDateTime dateFrom, LocalDateTime dateTo) {
         this.room = room;
         this.dateFrom = dateFrom;
@@ -35,9 +49,16 @@ public class Appointment implements Comparable<Appointment>{
         this.setDay(dateFrom.getDayOfWeek());
     }
 
+    /**
+     * Creates new instance of appointment
+     */
     public Appointment() {
     }
 
+    /**
+     * Returns appointment values
+     * @return Returns String which contains appointment values
+     */
     @Override
     public String toString() {
         return "Appointment{" +
@@ -49,6 +70,10 @@ public class Appointment implements Comparable<Appointment>{
                 '}' + '\n';
     }
 
+    /**
+     * Creates new copy of appointment
+     * @return Returns new instance of appointment
+     */
     public Appointment copy(){
         Appointment a = new Appointment(
                 this.day,
@@ -61,6 +86,12 @@ public class Appointment implements Comparable<Appointment>{
         return a;
     }
 
+    /**
+     *
+     * Compares two Appointments
+     * @param o the object to be compared.
+     * @return compared value
+     */
     @Override
     public int compareTo(Appointment o) {
         int a = this.getRoom().getName().compareTo(o.room.getName());
