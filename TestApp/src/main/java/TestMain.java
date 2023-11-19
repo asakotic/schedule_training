@@ -66,16 +66,16 @@ public class TestMain {
                     command = reader.nextLine();
 
                     switch (command) {
-                        case "1" -> ss.exportDataJSON("1.json", appointmentList); // 2. impl 1. impl
+                        case "1" -> ss.exportDataJSON("1.json", ss.getAppointments()); // 2. impl 1. impl
                         case "2" -> {
                             try {
-                                ss.exportDataCSV("1.csv", configPath, appointmentList);
+                                ss.exportDataCSV("1.csv", configPath, ss.getAppointments());
                             } catch (InvalidIndexException e) {
                                 throw new RuntimeException(e);
                             }
                         } //2. impl 1. impl
-                        case "3" -> ss.exportDataPDF("1.pdf", appointmentList); //2. impl 1. impl
-                        case "4" -> ss.exportDataConsole(appointmentList);
+                        case "3" -> ss.exportDataPDF("1.pdf", ss.getAppointments()); //2. impl 1. impl
+                        case "4" -> ss.exportDataConsole(ss.getAppointments());
                         case "5" -> ss.exportDataConsole(ss.getAppointments());
                         default -> {
                         }
